@@ -21,6 +21,6 @@ func (server HTTPServer) Init() {
 }
 
 //AddHandler adds a http handler
-func (server HTTPServer) AddHandler(path string, h handler) {
-	http.HandleFunc(path, h)
+func (server HTTPServer) AddHandler(method, path string, h handler) {
+	http.HandleFunc("/api/"+path, h)
 }

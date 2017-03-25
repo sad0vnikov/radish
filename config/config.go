@@ -1,33 +1,22 @@
 package config
 
 import (
-	"encoding/json"
-	"os"
-
-	"../redis"
+	"github.com/sad0vnikov/radish/redis"
 )
 
+//Config is struct which stores configuration data
 type Config struct {
-	Servers []redis.RedisServer
+	Servers []redis.Server
+}
+
+//Loader is an interface for configuration loading logic
+type Loader interface {
+	Load() (Config, error)
 }
 
 var config = Config{}
 
-func Load() (Config, error) {
-
-	file, err := os.Open("config.json")
-	if err != nil {
-		return Config{}, err
-	}
-
-	jsonParser := json.NewDecoder(file)
-	if err := jsonParser.Decode(&config); err != nil {
-		return config, err
-	}
-
-	return config, nil
-}
-
+//Get config data
 func Get() Config {
 	return config
 }
