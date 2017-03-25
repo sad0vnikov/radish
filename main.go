@@ -4,12 +4,16 @@ import (
 	"github.com/sad0vnikov/radish/config"
 	"github.com/sad0vnikov/radish/http/api"
 	"github.com/sad0vnikov/radish/http/server"
+	"github.com/sad0vnikov/radish/logger"
 )
 
 func main() {
+	logger.Info("init app...")
 	var configLoader config.Loader
 
-	configLoader = config.JSONFileConfigLoader{Path: "config.json"}
+	configPath := "config.json"
+	configLoader = config.JSONFileConfigLoader{Path: configPath}
+	logger.Infof("read config from %v", configPath)
 
 	_, err := configLoader.Load()
 
