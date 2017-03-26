@@ -31,3 +31,8 @@ func (server HTTPServer) AddHandler(method, path string, h handler) {
 	router.HandleFunc("/api/"+path, h).
 		Methods(method)
 }
+
+//GetURLParams returns request params from given HTTP request
+func GetURLParams(request *http.Request) map[string]string {
+	return mux.Vars(request)
+}

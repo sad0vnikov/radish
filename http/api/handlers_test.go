@@ -24,10 +24,10 @@ func TestGettingServersList(t *testing.T) {
 		t.Errorf("Handler returned status code %v, expected %v", status, http.StatusOK)
 	}
 
-	expectedServers := [3]redis.Server{}
-	expectedServers[0] = redis.NewServer("server1", "127.0.0.1", 6379)
-	expectedServers[1] = redis.NewServer("server2", "127.0.0.1", 6380)
-	expectedServers[2] = redis.NewServer("server3", "127.0.0.1", 6381)
+	expectedServers := map[string]redis.Server{}
+	expectedServers["server1"] = redis.NewServer("server1", "127.0.0.1", 6379)
+	expectedServers["server2"] = redis.NewServer("server2", "127.0.0.1", 6380)
+	expectedServers["server3"] = redis.NewServer("server3", "127.0.0.1", 6381)
 
 	expectedJSONBytes, err := json.Marshal(expectedServers)
 	if err != nil {
@@ -41,5 +41,10 @@ func TestGettingServersList(t *testing.T) {
 	if expectedJSON != resultJSON {
 		t.Errorf("got invalid json %v, expected %v", resultJSON, expectedJSON)
 	}
+
+}
+
+func TestGettingKeys(t *testing.T) {
+	config.StubConfigLoader{}.Load()
 
 }
