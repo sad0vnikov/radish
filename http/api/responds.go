@@ -14,3 +14,7 @@ func respondBadRequest(w http.ResponseWriter, message string) {
 	w.WriteHeader(http.StatusBadRequest)
 	fmt.Fprintf(w, message)
 }
+
+func respondNotFound(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+}

@@ -24,6 +24,7 @@ func main() {
 	server := server.HTTPServer{Port: 8080}
 	server.AddHandler("GET", api.Version()+"/servers", api.GetServersList)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/bymask/{mask}", api.GetKeysByMask)
+	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/bymask/{mask}/page/{page}", api.GetKeysByMask)
 
 	server.Init()
 

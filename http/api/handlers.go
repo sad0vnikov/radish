@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/sad0vnikov/radish/config"
 	"github.com/sad0vnikov/radish/http/server"
@@ -20,9 +21,16 @@ func GetServersList(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonMarshal)
 }
 
+type getKeysByMaskResponse struct {
+	Keys []string
+	Page int
+}
+
 //GetKeysByMask is a http handler returning a JSON list of keys satisfying given mask
 //for server with the name given in 'server' query param
 func GetKeysByMask(w http.ResponseWriter, r *http.Request) {
+
+	const pageSize = 100
 
 	requestParams := server.GetURLParams(r)
 
@@ -35,12 +43,37 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) {
 		respondBadRequest(w, "'mask' param is mandatory")
 	}
 
+	pageNumber := 1
+	page := requestParams["page"]
+	if len(page) > 0 {
+		paramPage, err := strconv.ParseInt(page, 0, 8)
+		if err == nil {
+			pageNumber = int(paramPage)
+		}
+
+	}
+
 	keys, err := db.FindKeysByMask(serverName, mask)
 	if err != nil {
 		respondBadRequest(w, err.Error())
 	}
 
-	jsonMarshal, err := json.Marshal(keys)
+	pageOffsetEnd := pageNumber * pageSize
+	if pageOffsetEnd > len(keys) {
+		pageOffsetEnd = len(keys)
+	}
+
+	pageOffsetStart := (pageNumber - 1) * pageSize
+	if pageOffsetStart > len(keys) {
+		respondNotFound(w)
+		return
+	}
+
+	keysPage := keys[pageOffsetStart:pageOffsetEnd]
+
+	responseContents := getKeysByMaskResponse{Keys: keysPage, Page: pageNumber}
+
+	jsonMarshal, err := json.Marshal(responseContents)
 	if err != nil {
 		logger.Error(err)
 		respondInternalError(w)
