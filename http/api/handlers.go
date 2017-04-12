@@ -26,11 +26,13 @@ type getKeysByMaskResponse struct {
 	Page int
 }
 
+const defaultPageSize = 100
+
 //GetKeysByMask is a http handler returning a JSON list of keys satisfying given mask
 //for server with the name given in 'server' query param
 func GetKeysByMask(w http.ResponseWriter, r *http.Request) {
 
-	const pageSize = 100
+	const pageSize = defaultPageSize
 
 	requestParams := server.GetURLParams(r)
 
@@ -80,4 +82,107 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(jsonMarshal)
+}
+
+type keyInfoResponse struct {
+	PageSize   int
+	PagesCount int
+	KeyType    string
+}
+
+//GetKeyInfo returns key type, values pages count and page size
+func GetKeyInfo(w http.ResponseWriter, r *http.Request) {
+	requestParams := server.GetURLParams(r)
+
+	serverName := requestParams["server"]
+	if len(serverName) == 0 {
+		respondBadRequest(w, "'server' param is mandatory")
+		return
+	}
+
+	keyName := requestParams["key"]
+	if len(keyName) == 0 {
+		respondBadRequest(w, "'key' param is mandatory")
+		return
+	}
+
+	key, err := db.GetKeyInfo(serverName, keyName)
+	if err != nil {
+		logger.Error(err)
+		respondInternalError(w)
+	}
+
+	response := keyInfoResponse{}
+	response.PageSize = defaultPageSize
+	response.PagesCount, err = key.PagesCount(defaultPageSize)
+	if err != nil {
+		logger.Error(err)
+		respondInternalError(w)
+	}
+	response.KeyType = key.KeyType()
+
+	responseMarshal, err := json.Marshal(response)
+	if err != nil {
+		logger.Error(err)
+		respondInternalError(w)
+	}
+
+	w.Write(responseMarshal)
+}
+
+type singleValueResponse struct {
+	KeyType  string
+	KeyValue string
+}
+
+type listValuesResponse struct {
+	KeyType   string
+	KeyValues []string
+}
+
+//GetKeyValues returns a list of key values
+func GetKeyValues(w http.ResponseWriter, r *http.Request) {
+	requestParams := server.GetURLParams(r)
+
+	serverName := requestParams["server"]
+	if len(serverName) == 0 {
+		respondBadRequest(w, "'server' param is required")
+		return
+	}
+
+	keyName := requestParams["key"]
+	if len(keyName) == 0 {
+		respondBadRequest(w, "'key' param is required")
+		return
+	}
+
+	key, err := db.GetKeyInfo(serverName, keyName)
+	if err != nil {
+		logger.Error(err)
+		respondInternalError(w)
+		return
+	}
+
+	v, err := key.Values(1, defaultPageSize)
+	if err != nil {
+		logger.Error(err)
+		respondInternalError(w)
+		return
+	}
+
+	switch key.KeyType() {
+	case db.RedisString:
+		response := singleValueResponse{}
+		response.KeyType = key.KeyType()
+		if str, ok := v.(string); ok {
+			response.KeyValue = str
+			respondJSON(w, response)
+		} else {
+			respondInternalError(w)
+		}
+	default:
+		respondInternalError(w)
+
+	}
+
 }
