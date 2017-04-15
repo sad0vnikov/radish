@@ -7,6 +7,7 @@ import (
 	"math"
 
 	"github.com/garyburd/redigo/redis"
+	"github.com/sad0vnikov/radish/logger"
 )
 
 //Keys is a basic interface for managing redis keys
@@ -58,6 +59,26 @@ func FindKeysByMask(serverName, mask string) ([]string, error) {
 	}
 
 	return redis.Strings(result, err)
+
+}
+
+//KeyExists returns True if given Redis key exists
+func KeyExists(serverName, key string) (bool, error) {
+	conn, err := connector.GetByName(serverName)
+
+	if err != nil {
+		logger.Error(err)
+		return false, err
+	}
+
+	r, err := conn.Do("EXISTS", key)
+	keyExists, err := redis.Bool(r, err)
+	if err != nil {
+		logger.Error(err)
+		return false, err
+	}
+
+	return keyExists, nil
 
 }
 

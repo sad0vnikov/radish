@@ -106,6 +106,16 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	keyExists, err := db.KeyExists(serverName, keyName)
+	if err != nil {
+		respondInternalError(w)
+		return
+	}
+	if !keyExists {
+		respondNotFound(w)
+		return
+	}
+
 	key, err := db.GetKeyInfo(serverName, keyName)
 	if err != nil {
 		logger.Error(err)
@@ -172,6 +182,16 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 	keyName := requestParams["key"]
 	if len(keyName) == 0 {
 		respondBadRequest(w, "'key' param is required")
+		return
+	}
+
+	keyExists, err := db.KeyExists(serverName, keyName)
+	if err != nil {
+		respondInternalError(w)
+		return
+	}
+	if !keyExists {
+		respondNotFound(w)
 		return
 	}
 
