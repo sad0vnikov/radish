@@ -80,6 +80,8 @@ func GetKeyInfo(serverName, key string) (Key, error) {
 	switch keyType {
 	case "string":
 		return StringKey{serverName: serverName, key: key}, nil
+	case "list":
+		return ListKey{serverName: serverName, key: key}, nil
 	}
 
 	return nil, errors.New("get unknown redis object type")

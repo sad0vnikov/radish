@@ -138,6 +138,7 @@ type singleValueResponse struct {
 type listValuesResponse struct {
 	KeyType   string
 	KeyValues []string
+	PageNum   int
 }
 
 //GetKeyValues returns a list of key values
@@ -156,6 +157,14 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pageParam := requestParams["page"]
+	pageNum := 0
+	if len(pageParam) != 0 {
+		if parsedPageParam, err := strconv.ParseInt(pageParam, 0, 0); err == nil {
+			pageNum = int(parsedPageParam)
+		}
+	}
+
 	key, err := db.GetKeyInfo(serverName, keyName)
 	if err != nil {
 		logger.Error(err)
@@ -163,7 +172,7 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	v, err := key.Values(1, defaultPageSize)
+	v, err := key.Values(pageNum, defaultPageSize)
 	if err != nil {
 		logger.Error(err)
 		respondInternalError(w)
@@ -180,9 +189,16 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 		} else {
 			respondInternalError(w)
 		}
+	case db.RedisList:
+		response := listValuesResponse{}
+		response.KeyType = key.KeyType()
+		if strings, ok := v.([]string); ok {
+			response.KeyValues = strings
+		}
+		response.PageNum = pageNum
+		respondJSON(w, response)
 	default:
 		respondInternalError(w)
-
 	}
 
 }
