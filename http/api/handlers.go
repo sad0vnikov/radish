@@ -141,6 +141,24 @@ type listValuesResponse struct {
 	PageNum   int
 }
 
+type hashValuesResponse struct {
+	KeyType   string
+	KeyValues map[string]string
+	PageNum   int
+}
+
+type setValuesResponse struct {
+	KeyType   string
+	KeyValues []string
+	PageNum   int
+}
+
+type zsetValuesResponse struct {
+	KeyType   string
+	KeyValues []db.ZSetMember
+	PageNum   int
+}
+
 //GetKeyValues returns a list of key values
 func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 	requestParams := server.GetURLParams(r)
@@ -197,6 +215,32 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 		}
 		response.PageNum = pageNum
 		respondJSON(w, response)
+
+	case db.RedisZset:
+		response := zsetValuesResponse{}
+		response.KeyType = key.KeyType()
+		if v, ok := v.([]db.ZSetMember); ok {
+			response.KeyValues = v
+		}
+		response.PageNum = pageNum
+		respondJSON(w, response)
+	case db.RedisHash:
+		response := hashValuesResponse{}
+		response.KeyType = key.KeyType()
+		if v, ok := v.(map[string]string); ok {
+			response.KeyValues = v
+		}
+		response.PageNum = pageNum
+		respondJSON(w, response)
+	case db.RedisSet:
+		response := setValuesResponse{}
+		response.KeyType = key.KeyType()
+		if v, ok := v.([]string); ok {
+			response.KeyValues = v
+		}
+		response.PageNum = pageNum
+		respondJSON(w, response)
+
 	default:
 		respondInternalError(w)
 	}

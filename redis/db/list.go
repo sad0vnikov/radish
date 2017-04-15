@@ -1,8 +1,6 @@
 package db
 
 import (
-	"math"
-
 	"github.com/garyburd/redigo/redis"
 	"github.com/sad0vnikov/radish/logger"
 )
@@ -22,7 +20,6 @@ func (key ListKey) KeyType() string {
 func (key ListKey) PagesCount(pageSize int) (int, error) {
 	conn, err := connector.GetByName(key.serverName)
 	if err != nil {
-		logger.Error(err)
 		return 0, err
 	}
 	r, err := conn.Do("LLEN", key.key)
@@ -32,14 +29,13 @@ func (key ListKey) PagesCount(pageSize int) (int, error) {
 		return 0, err
 	}
 
-	return int(math.Ceil(float64(count) / float64(pageSize))), nil
+	return getValuesPagesCount(count, pageSize), nil
 }
 
 //Values returns redis List values page
 func (key ListKey) Values(pageNum, pageSize int) (interface{}, error) {
 	conn, err := connector.GetByName(key.serverName)
 	if err != nil {
-		logger.Error(err)
 		return 0, err
 	}
 
@@ -50,7 +46,7 @@ func (key ListKey) Values(pageNum, pageSize int) (interface{}, error) {
 
 	if err != nil {
 		logger.Error(err)
-		return values, err
+		return nil, err
 	}
 
 	return values, nil

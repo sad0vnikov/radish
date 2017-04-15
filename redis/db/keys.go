@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 
 	"github.com/garyburd/redigo/redis"
 )
@@ -82,7 +83,17 @@ func GetKeyInfo(serverName, key string) (Key, error) {
 		return StringKey{serverName: serverName, key: key}, nil
 	case "list":
 		return ListKey{serverName: serverName, key: key}, nil
+	case "hash":
+		return HashKey{serverName: serverName, key: key}, nil
+	case "set":
+		return SetKey{serverName: serverName, key: key}, nil
+	case "zset":
+		return ZSetKey{serverName: serverName, key: key}, nil
 	}
 
 	return nil, errors.New("get unknown redis object type")
+}
+
+func getValuesPagesCount(valuesCout int, pageSize int) int {
+	return int(math.Ceil(float64(valuesCout) / float64(pageSize)))
 }

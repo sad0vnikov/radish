@@ -2,9 +2,9 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/garyburd/redigo/redis"
+	"github.com/sad0vnikov/radish/logger"
 )
 
 //StringKey is a key with redis String value
@@ -33,13 +33,12 @@ func getStringKeyValue(serverName, key string) (string, error) {
 	conn, err := connector.GetByName(serverName)
 
 	if err != nil {
-		log.Fatal(err)
 		return "", fmt.Errorf("can't connect to server %v", serverName)
 	}
 
 	result, err := conn.Do("GET", key)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err)
 		return "", fmt.Errorf("can't get key %v value", key)
 	}
 
