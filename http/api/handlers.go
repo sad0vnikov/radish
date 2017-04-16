@@ -1,24 +1,20 @@
 package api
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/sad0vnikov/radish/config"
+	"github.com/sad0vnikov/radish/http/responds"
 	"github.com/sad0vnikov/radish/http/server"
 	"github.com/sad0vnikov/radish/logger"
 	"github.com/sad0vnikov/radish/redis/db"
 )
 
 //GetServersList is a http handler returning a list of avalable Redis instances
-func GetServersList(w http.ResponseWriter, r *http.Request) {
-	jsonMarshal, err := json.Marshal(config.Get().Servers)
-	if err != nil {
-		logger.Error(err)
-		respondInternalError(w)
-	}
-	w.Write(jsonMarshal)
+func GetServersList(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	return config.Get().Servers, nil
 }
 
 type getKeysByMaskResponse struct {
@@ -30,7 +26,7 @@ const defaultPageSize = 100
 
 //GetKeysByMask is a http handler returning a JSON list of keys satisfying given mask
 //for server with the name given in 'server' query param
-func GetKeysByMask(w http.ResponseWriter, r *http.Request) {
+func GetKeysByMask(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 
 	const pageSize = defaultPageSize
 
@@ -38,11 +34,11 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) {
 
 	serverName := requestParams["server"]
 	if len(serverName) == 0 {
-		respondBadRequest(w, "'server' param is mandatory")
+		return nil, responds.NewBadRequestError("'server' param is mandatory")
 	}
 	mask := requestParams["mask"]
 	if len(mask) == 0 {
-		respondBadRequest(w, "'mask' param is mandatory")
+		return nil, responds.NewBadRequestError("'mask' param is mandatory")
 	}
 
 	pageNumber := 1
@@ -57,7 +53,7 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) {
 
 	keys, err := db.FindKeysByMask(serverName, mask)
 	if err != nil {
-		respondBadRequest(w, err.Error())
+		return nil, err
 	}
 
 	pageOffsetEnd := pageNumber * pageSize
@@ -67,21 +63,14 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) {
 
 	pageOffsetStart := (pageNumber - 1) * pageSize
 	if pageOffsetStart > len(keys) {
-		respondNotFound(w)
-		return
+		return nil, responds.NewNotFoundError("page not found")
 	}
 
 	keysPage := keys[pageOffsetStart:pageOffsetEnd]
 
 	responseContents := getKeysByMaskResponse{Keys: keysPage, Page: pageNumber}
 
-	jsonMarshal, err := json.Marshal(responseContents)
-	if err != nil {
-		logger.Error(err)
-		respondInternalError(w)
-	}
-
-	w.Write(jsonMarshal)
+	return responseContents, nil
 }
 
 type keyInfoResponse struct {
@@ -91,35 +80,31 @@ type keyInfoResponse struct {
 }
 
 //GetKeyInfo returns key type, values pages count and page size
-func GetKeyInfo(w http.ResponseWriter, r *http.Request) {
+func GetKeyInfo(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	requestParams := server.GetURLParams(r)
 
 	serverName := requestParams["server"]
 	if len(serverName) == 0 {
-		respondBadRequest(w, "'server' param is mandatory")
-		return
+		return nil, responds.NewBadRequestError("'server' param is mandatory")
 	}
 
 	keyName := requestParams["key"]
 	if len(keyName) == 0 {
-		respondBadRequest(w, "'key' param is mandatory")
-		return
+		return nil, responds.NewBadRequestError("'key' param is mandatory")
 	}
 
 	keyExists, err := db.KeyExists(serverName, keyName)
 	if err != nil {
-		respondInternalError(w)
-		return
+		return nil, err
 	}
 	if !keyExists {
-		respondNotFound(w)
-		return
+		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
 	}
 
 	key, err := db.GetKeyInfo(serverName, keyName)
 	if err != nil {
 		logger.Error(err)
-		respondInternalError(w)
+		return nil, err
 	}
 
 	response := keyInfoResponse{}
@@ -127,17 +112,11 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) {
 	response.PagesCount, err = key.PagesCount(defaultPageSize)
 	if err != nil {
 		logger.Error(err)
-		respondInternalError(w)
+		return nil, err
 	}
 	response.KeyType = key.KeyType()
 
-	responseMarshal, err := json.Marshal(response)
-	if err != nil {
-		logger.Error(err)
-		respondInternalError(w)
-	}
-
-	w.Write(responseMarshal)
+	return response, nil
 }
 
 type singleValueResponse struct {
@@ -170,29 +149,25 @@ type zsetValuesResponse struct {
 }
 
 //GetKeyValues returns a list of key values
-func GetKeyValues(w http.ResponseWriter, r *http.Request) {
+func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	requestParams := server.GetURLParams(r)
 
 	serverName := requestParams["server"]
 	if len(serverName) == 0 {
-		respondBadRequest(w, "'server' param is required")
-		return
+		return nil, responds.NewBadRequestError("'server' param is required")
 	}
 
 	keyName := requestParams["key"]
 	if len(keyName) == 0 {
-		respondBadRequest(w, "'key' param is required")
-		return
+		return nil, responds.NewBadRequestError("'key' param is required")
 	}
 
 	keyExists, err := db.KeyExists(serverName, keyName)
 	if err != nil {
-		respondInternalError(w)
-		return
+		return nil, err
 	}
 	if !keyExists {
-		respondNotFound(w)
-		return
+		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
 	}
 
 	pageParam := requestParams["page"]
@@ -206,15 +181,13 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 	key, err := db.GetKeyInfo(serverName, keyName)
 	if err != nil {
 		logger.Error(err)
-		respondInternalError(w)
-		return
+		return nil, err
 	}
 
 	v, err := key.Values(pageNum, defaultPageSize)
 	if err != nil {
 		logger.Error(err)
-		respondInternalError(w)
-		return
+		return nil, err
 	}
 
 	switch key.KeyType() {
@@ -223,10 +196,9 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 		response.KeyType = key.KeyType()
 		if str, ok := v.(string); ok {
 			response.KeyValue = str
-			respondJSON(w, response)
-		} else {
-			respondInternalError(w)
 		}
+		return response, nil
+
 	case db.RedisList:
 		response := listValuesResponse{}
 		response.KeyType = key.KeyType()
@@ -234,7 +206,7 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 			response.KeyValues = strings
 		}
 		response.PageNum = pageNum
-		respondJSON(w, response)
+		return response, nil
 
 	case db.RedisZset:
 		response := zsetValuesResponse{}
@@ -243,7 +215,7 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 			response.KeyValues = v
 		}
 		response.PageNum = pageNum
-		respondJSON(w, response)
+		return response, nil
 	case db.RedisHash:
 		response := hashValuesResponse{}
 		response.KeyType = key.KeyType()
@@ -251,7 +223,7 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 			response.KeyValues = v
 		}
 		response.PageNum = pageNum
-		respondJSON(w, response)
+		return response, nil
 	case db.RedisSet:
 		response := setValuesResponse{}
 		response.KeyType = key.KeyType()
@@ -259,10 +231,10 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) {
 			response.KeyValues = v
 		}
 		response.PageNum = pageNum
-		respondJSON(w, response)
+		return response, nil
 
 	default:
-		respondInternalError(w)
+		return nil, fmt.Errorf("%v key has not-supported type %v", keyName, key.KeyType())
 	}
 
 }
