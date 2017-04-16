@@ -33,7 +33,7 @@ navbar model =
                       li [] [
                         a [href "#"] [text server.name]
                       ] 
-                    ) <| Dict.values model.loadedData.servers
+                    ) <| Dict.values model.loadedServers.servers
               ]
           
           ]
@@ -67,7 +67,7 @@ workspace model =
               ul [class "list-group"]
                 (List.map (\key ->
                   li [class "list-group-item"] [text key]
-                ) model.loadedData.loadedKeys)        
+                ) model.loadedKeys)        
           ]
         ]
       ],

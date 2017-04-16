@@ -1,0 +1,15 @@
+var _user$project$Repl$t_s_o_l = {ctor: '_Tuple0'};
+var _user$project$Repl$json = '{\"server1\":{\"Name\":\"server1\",\"Host\":\"127.0.0.1\",\"Port\":32768}}';
+var _user$project$Repl$Server = F3(
+	function (a, b, c) {
+		return {name: a, host: b, port_: c};
+	});
+var _user$project$Repl$serversListDecoder = _elm_lang$core$Json_Decode$dict(
+	A4(
+		_elm_lang$core$Json_Decode$map3,
+		_user$project$Repl$Server,
+		A2(_elm_lang$core$Json_Decode$field, 'Name', _elm_lang$core$Json_Decode$string),
+		A2(_elm_lang$core$Json_Decode$field, 'Host', _elm_lang$core$Json_Decode$string),
+		A2(_elm_lang$core$Json_Decode$field, 'Port', _elm_lang$core$Json_Decode$int)));
+var _user$project$Repl$d = A2(_elm_lang$core$Json_Decode$decodeString, _user$project$Repl$serversListDecoder, _user$project$Repl$json);
+var _user$project$Repl$d_e_l_t_r_o_n_3_0_3_0 = _user$project$Repl$d;

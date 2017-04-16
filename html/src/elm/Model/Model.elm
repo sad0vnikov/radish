@@ -1,4 +1,4 @@
-module Model.Model exposing (Model, Server, RedisKey, initModel)
+module Model.Model exposing (Model, Server, RedisKey, LoadedServers, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -7,24 +7,32 @@ type alias Model = {
   api: {
     url: String
   },
-  loadedData: {
-    servers: Dict String Server,
-    loadedKeys: List RedisKey
-  },
+
+  loadedServers: LoadedServers,
+  loadedKeys: List RedisKey,
+
   chosenServer: Maybe String,
-  chosenKey: Maybe String
+  chosenKey: Maybe String,
+
+  error: Maybe String
+}
+
+
+type alias LoadedServers = {
+    servers: Dict String Server
 }
 
 initModel : Flags -> Model
 initModel flags =
   {
     api = { url = flags.apiUrl},
-    loadedData = {
-      servers = Dict.empty,
-      loadedKeys = []
+    loadedServers = {
+      servers = Dict.empty
     },
+    loadedKeys = [],
     chosenServer = Maybe.Nothing,
-    chosenKey = Maybe.Nothing
+    chosenKey = Maybe.Nothing,
+    error = Maybe.Nothing
   }
 
 type alias Server = {
