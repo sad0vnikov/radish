@@ -27,6 +27,7 @@ func main() {
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/bymask/{mask}/page/{page}", api.GetKeysByMask)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/info", api.GetKeyInfo)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/values", api.GetKeyValues)
+	server.ServeStatic()
 	server.Init()
 
 }

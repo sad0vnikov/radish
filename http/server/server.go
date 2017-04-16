@@ -27,6 +27,12 @@ func (server HTTPServer) Init() {
 	}
 }
 
+//ServeStatic turns on serving Radish panel static files
+func (server HTTPServer) ServeStatic() {
+	fs := http.FileServer(http.Dir("html/dist"))
+	router.PathPrefix("/").Handler(fs)
+}
+
 //AddHandler adds a http handler
 func (server HTTPServer) AddHandler(method, path string, h apiHandler) {
 	router.HandleFunc(
