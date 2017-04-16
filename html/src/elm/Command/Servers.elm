@@ -16,4 +16,4 @@ getServersList model =
 
 serversListDecoder : Decode.Decoder (Dict String Server)
 serversListDecoder =
-    Decode.dict <| Decode.map3 Server (Decode.field "Name" Decode.string) (Decode.field "Host" Decode.string) (Decode.field "Port" Decode.int)
+    Decode.dict <| Decode.map3 Server (Decode.field "Nae" Decode.string) (Decode.field "Host" Decode.string) (Decode.field "Port" Decode.int)

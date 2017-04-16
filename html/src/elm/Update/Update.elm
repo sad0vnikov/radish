@@ -3,6 +3,7 @@ module Update.Update exposing (Msg(..), update)
 import Model.Model exposing (..)
 import Http
 import Dict exposing (..)
+import View.Toastr as Toastr
 
 type Msg = NoOp 
   | ChosenServer String 
@@ -16,11 +17,14 @@ update msg model =
     ServersListLoaded (Ok servers) ->
       ({model | loadedServers = (updateServersList model.loadedServers servers)}, Cmd.none)
     ServersListLoaded (Err err) ->
-      ({model | error = Just ("Got error while loading servers list: " ++ (httpErrorToString err))}, Cmd.none)
+      let
+        errorStr = "Got error while loading servers list: " ++ (httpErrorToString err)
+      in
+        (model, Toastr.toastError errorStr)
     _ ->
       (model, Cmd.none)
 
-  
+
 
 updateServersList: LoadedServers -> Dict String Server -> LoadedServers
 updateServersList loadedServers servers =
