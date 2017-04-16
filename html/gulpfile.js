@@ -2,7 +2,7 @@ var gulp = require('gulp');
 var webpack = require('gulp-webpack');
 var rimraf = require('rimraf')
 
-gulp.task('default', ['webpack'])
+gulp.task('default', ['watch', 'webpack'])
 
 gulp.task('webpack', ['pre-build-clean'], function() {
     return gulp.src("src/index.html")
@@ -14,4 +14,6 @@ gulp.task('pre-build-clean', function(cb) {
     rimraf('./dist/', cb);
 })
 
-gulp.watch('./src/elm/*.elm', ['webpack-clean'])
+gulp.task("watch", function() {
+    gulp.watch("./src/elm/**/*.elm", ['webpack'])
+})
