@@ -1,10 +1,11 @@
 module View.ServerPage exposing (view)
 
 import Html exposing (..)
+import Html.Events exposing (onClick, onInput)
 import Model.Model exposing (..)
 import Html.Attributes exposing (..)
-import Update.Update exposing (Msg)
 import Dict exposing (..)
+import Update.Msg exposing (Msg(..))
 
 view : Model -> Html Msg
 view model =
@@ -26,12 +27,12 @@ navbar model =
               li [ class "dropdown" ] [
                 a [ class "dropdown-toggle", attribute "data-toggle" "dropdown" ] [
                     i [class "fa fa-server"] [],
-                    text "Выберите сервер"
+                    text " Choose server"
                 ],
                 ul [ class "dropdown-menu" ] 
                   <| List.map (\server -> 
                       li [] [
-                        a [href "#"] [text server.name]
+                        a [href "#", onClick (ChosenServer server.name)] [text server.name]
                       ] 
                     ) <| Dict.values model.loadedServers.servers
               ]
@@ -60,7 +61,7 @@ workspace model =
           div [class "panel-body"] [
               Html.form [] [
                 div [class "input-group"] [
-                  input [type_ "text", class "form-control"] [],
+                  input [type_ "text", class "form-control", placeholder "*", value model.keysMask, onInput KeysMaskChanged] [],
                   label [class "input-group-addon"] [i [class "fa fa-search"] []]
                 ]
               ],

@@ -10,6 +10,7 @@ type alias Model = {
 
   loadedServers: LoadedServers,
   loadedKeys: List RedisKey,
+  keysMask: String,
 
   chosenServer: Maybe String,
   chosenKey: Maybe String,
@@ -30,6 +31,7 @@ initModel flags =
       servers = Dict.empty
     },
     loadedKeys = [],
+    keysMask = "",
     chosenServer = Maybe.Nothing,
     chosenKey = Maybe.Nothing,
     error = Maybe.Nothing

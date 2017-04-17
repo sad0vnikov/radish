@@ -1,6 +1,6 @@
-module Command.Servers exposing (..)
+module Command.Servers exposing (getServersList)
 
-import Update.Update exposing (Msg(..))
+import Update.Msg exposing (Msg(..))
 import Json.Decode as Decode exposing (..)
 import Model.Model exposing (Server,Model)
 import Http
@@ -16,4 +16,4 @@ getServersList model =
 
 serversListDecoder : Decode.Decoder (Dict String Server)
 serversListDecoder =
-    Decode.dict <| Decode.map3 Server (Decode.field "Nae" Decode.string) (Decode.field "Host" Decode.string) (Decode.field "Port" Decode.int)
+    Decode.dict <| Decode.map3 Server (Decode.field "Name" Decode.string) (Decode.field "Host" Decode.string) (Decode.field "Port" Decode.int)

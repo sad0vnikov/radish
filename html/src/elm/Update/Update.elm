@@ -1,19 +1,21 @@
-module Update.Update exposing (Msg(..), update)
+module Update.Update exposing (update)
 
 import Model.Model exposing (..)
 import Http
 import Dict exposing (..)
 import View.Toastr as Toastr
-
-type Msg = NoOp 
-  | ChosenServer String 
-  | ServersListLoaded (Result Http.Error (Dict String Server)) 
+import Update.Msg exposing (Msg(..))
+import Command.Keys exposing (..)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     ChosenServer server ->
-      ({model | chosenServer = Just server}, Cmd.none)
+      let
+        updatedModel = {model | chosenServer = Just server}
+      in
+        (updatedModel, getKeysPage updatedModel)
+
     ServersListLoaded (Ok servers) ->
       ({model | loadedServers = (updateServersList model.loadedServers servers)}, Cmd.none)
     ServersListLoaded (Err err) ->
@@ -21,6 +23,18 @@ update msg model =
         errorStr = "Got error while loading servers list: " ++ (httpErrorToString err)
       in
         (model, Toastr.toastError errorStr)
+    KeysPageLoaded (Ok keys) ->
+      ({model | loadedKeys = keys}, Cmd.none)
+    KeysPageLoaded (Err err) ->
+      let
+        errorStr = "Got error while loading keys list: " ++ (httpErrorToString err)
+      in
+        (model, Toastr.toastError errorStr)
+    KeysMaskChanged mask ->
+      let 
+        updatedModel = {model | keysMask = mask}
+      in
+        (updatedModel, getKeysPage updatedModel)
     _ ->
       (model, Cmd.none)
 

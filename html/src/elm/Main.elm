@@ -4,7 +4,8 @@ import Html exposing (program)
 
 import View.ServerPage exposing (..)
 import Model.Model exposing (..)
-import Update.Update exposing (update, Msg)
+import Update.Update exposing (update)
+import Update.Msg exposing (Msg)
 import Flags exposing (Flags)
 import Command.Servers exposing (getServersList)
 
