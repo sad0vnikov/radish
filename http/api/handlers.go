@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -18,8 +19,9 @@ func GetServersList(w http.ResponseWriter, r *http.Request) (interface{}, error)
 }
 
 type getKeysByMaskResponse struct {
-	Keys []string
-	Page int
+	Keys       []string
+	Page       int
+	PagesCount int
 }
 
 const defaultPageSize = 100
@@ -67,8 +69,9 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) (interface{}, error) 
 	}
 
 	keysPage := keys[pageOffsetStart:pageOffsetEnd]
+	pagesCount := int(math.Ceil(float64(len(keys)) / float64(pageSize)))
 
-	responseContents := getKeysByMaskResponse{Keys: keysPage, Page: pageNumber}
+	responseContents := getKeysByMaskResponse{Keys: keysPage, Page: pageNumber, PagesCount: pagesCount}
 
 	return responseContents, nil
 }
