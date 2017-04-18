@@ -11,7 +11,7 @@ getKeysPage model =
         Just chosenServer ->
             let
                 keysMask = sanitizeKeysMask model.keysMask
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/bymask/" ++ keysMask ++ "/page/" ++ toString model.loadedKeys.currentPage
+                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys?mask=" ++ (Http.encodeUri keysMask) ++ "&page=" ++ toString model.loadedKeys.currentPage
             in
                 Http.send KeysPageLoaded (Http.get url keysListDecoder)
         Nothing ->

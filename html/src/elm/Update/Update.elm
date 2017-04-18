@@ -32,7 +32,7 @@ update msg model =
         (model, Toastr.toastError errorStr)
     KeysMaskChanged mask ->
       let 
-        updatedModel = {model | keysMask = mask}
+        updatedModel = {model | keysMask = mask, loadedKeys = updateKeysPage model.loadedKeys 1}
       in
         (updatedModel, getKeysPage updatedModel)
     KeysPageChanged pageNum ->

@@ -38,13 +38,13 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) (interface{}, error) 
 	if len(serverName) == 0 {
 		return nil, responds.NewBadRequestError("'server' param is mandatory")
 	}
-	mask := requestParams["mask"]
+	mask := r.URL.Query().Get("mask")
 	if len(mask) == 0 {
-		return nil, responds.NewBadRequestError("'mask' param is mandatory")
+		mask = "*"
 	}
 
 	pageNumber := 1
-	page := requestParams["page"]
+	page := r.URL.Query().Get("page")
 	if len(page) > 0 {
 		paramPage, err := strconv.ParseInt(page, 0, 8)
 		if err == nil {
@@ -55,6 +55,7 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) (interface{}, error) 
 
 	keys, err := db.FindKeysByMask(serverName, mask)
 	if err != nil {
+		logger.Error(err)
 		return nil, err
 	}
 
