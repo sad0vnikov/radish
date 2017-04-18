@@ -1,6 +1,6 @@
 module Command.Keys exposing (getKeysPage)
 
-import Model.Model exposing (Model, RedisKey)
+import Model.Model exposing (Model, RedisKey, LoadedKeys)
 import Update.Msg exposing (Msg(..))
 import Http
 import Json.Decode as Decode
@@ -11,7 +11,7 @@ getKeysPage model =
         Just chosenServer ->
             let
                 keysMask = sanitizeKeysMask model.keysMask
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/bymask/" ++ keysMask
+                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/bymask/" ++ keysMask ++ "/page/" ++ toString model.loadedKeys.currentPage
             in
                 Http.send KeysPageLoaded (Http.get url keysListDecoder)
         Nothing ->
@@ -24,6 +24,6 @@ sanitizeKeysMask mask =
     else
         mask
 
-keysListDecoder : Decode.Decoder (List RedisKey)
+keysListDecoder : Decode.Decoder LoadedKeys
 keysListDecoder =
-    Decode.at ["Keys"] (Decode.list Decode.string)
+    Decode.map3 LoadedKeys (Decode.field "Keys" (Decode.list Decode.string)) (Decode.field "PagesCount" Decode.int) (Decode.field "Page" Decode.int)

@@ -35,6 +35,11 @@ update msg model =
         updatedModel = {model | keysMask = mask}
       in
         (updatedModel, getKeysPage updatedModel)
+    KeysPageChanged pageNum ->
+      let 
+        updatedModel = {model | loadedKeys = updateKeysPage model.loadedKeys pageNum}
+      in
+        (updatedModel, getKeysPage updatedModel)
     _ ->
       (model, Cmd.none)
 
@@ -43,6 +48,10 @@ update msg model =
 updateServersList: LoadedServers -> Dict String Server -> LoadedServers
 updateServersList loadedServers servers =
   {loadedServers | servers = servers}
+
+updateKeysPage : LoadedKeys -> Int -> LoadedKeys
+updateKeysPage loadedKeys newPage =
+  {loadedKeys | currentPage = newPage }
 
 
 httpErrorToString : Http.Error -> String

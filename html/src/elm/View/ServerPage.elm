@@ -2,10 +2,13 @@ module View.ServerPage exposing (view)
 
 import Html exposing (..)
 import Html.Events exposing (onClick, onInput)
+
 import Model.Model exposing (..)
 import Html.Attributes exposing (..)
 import Dict exposing (..)
+import List exposing (range)
 import Update.Msg exposing (Msg(..))
+import View.Pagination exposing (drawPager)
 
 view : Model -> Html Msg
 view model =
@@ -68,7 +71,10 @@ workspace model =
               ul [class "list-group"]
                 (List.map (\key ->
                   li [class "list-group-item"] [text key]
-                ) model.loadedKeys)        
+                ) model.loadedKeys.keys)        
+          ], 
+          div [class "panel-footer"] [
+              drawPager model.loadedKeys.pagesCount model.loadedKeys.currentPage KeysPageChanged
           ]
         ]
       ],

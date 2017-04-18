@@ -1,4 +1,4 @@
-module Model.Model exposing (Model, Server, RedisKey, LoadedServers, initModel)
+module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -9,7 +9,7 @@ type alias Model = {
   },
 
   loadedServers: LoadedServers,
-  loadedKeys: List RedisKey,
+  loadedKeys: LoadedKeys,
   keysMask: String,
 
   chosenServer: Maybe String,
@@ -23,6 +23,12 @@ type alias LoadedServers = {
     servers: Dict String Server
 }
 
+type alias LoadedKeys = {
+    keys: List RedisKey,
+    pagesCount: Int,
+    currentPage: Int
+}
+
 initModel : Flags -> Model
 initModel flags =
   {
@@ -30,7 +36,11 @@ initModel flags =
     loadedServers = {
       servers = Dict.empty
     },
-    loadedKeys = [],
+    loadedKeys = {
+      keys = [],
+      pagesCount = 0,
+      currentPage = 1
+    },
     keysMask = "",
     chosenServer = Maybe.Nothing,
     chosenKey = Maybe.Nothing,
