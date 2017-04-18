@@ -2,7 +2,7 @@ module Update.Msg exposing (Msg(..))
 
 import Http
 import Dict exposing (Dict)
-import Model.Model exposing (LoadedKeys, Server)
+import Model.Model exposing (LoadedKeys, Server, RedisKey)
 
 type Msg = NoOp 
   | ChosenServer String 
@@ -10,3 +10,4 @@ type Msg = NoOp
   | KeysPageLoaded (Result Http.Error LoadedKeys)
   | KeysMaskChanged String
   | KeysPageChanged Int
+  | KeyChosen RedisKey
