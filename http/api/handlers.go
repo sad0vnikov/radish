@@ -123,21 +123,37 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	return response, nil
 }
 
-type valuesResponse struct {
+type singleValueResponse struct {
+	KeyType string
+	Value   string
+}
+
+type listValuesResponse struct {
 	KeyType    string
-	Values     []RedisValue
+	Values     []string
 	PageNum    int
 	PagesCount int
 }
 
-//RedisValue is a struct that could represent any Redis value
-//Value field is always present
-//Key fields is only present in a redis Hash values
-//Score field is only present in redis ZSet values
-type RedisValue struct {
-	Value string
-	Key   string
-	Score int64
+type hashValuesResponse struct {
+	KeyType    string
+	Values     map[string]string
+	PageNum    int
+	PagesCount int
+}
+
+type setValuesResponse struct {
+	KeyType    string
+	Values     []string
+	PageNum    int
+	PagesCount int
+}
+
+type zsetValuesResponse struct {
+	KeyType    string
+	Values     []db.ZSetMember
+	PageNum    int
+	PagesCount int
 }
 
 //GetKeyValues returns a list of key values
@@ -182,64 +198,57 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	response := valuesResponse{}
-	response.PageNum = pageNum
 	pagesCount, err := key.PagesCount(defaultPageSize)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
-	response.PagesCount = pagesCount
+
 	switch key.KeyType() {
 	case db.RedisString:
+		response := singleValueResponse{}
 		response.KeyType = key.KeyType()
 		if str, ok := v.(string); ok {
-			value := RedisValue{Value: str}
-			response.Values = []RedisValue{value}
+			response.Value = str
 		}
 		return response, nil
 
 	case db.RedisList:
+		response := listValuesResponse{}
 		response.KeyType = key.KeyType()
 		if strings, ok := v.([]string); ok {
-			values := []RedisValue{}
-			for _, str := range strings {
-				values = append(values, RedisValue{Value: str})
-			}
-			response.Values = values
+			response.Values = strings
 		}
+		response.PageNum = pageNum
+		response.PagesCount = pagesCount
 		return response, nil
 
 	case db.RedisZset:
+		response := zsetValuesResponse{}
 		response.KeyType = key.KeyType()
 		if v, ok := v.([]db.ZSetMember); ok {
-			values := []RedisValue{}
-			for _, setMember := range v {
-				values = append(values, RedisValue{Value: setMember.Member, Score: setMember.Score})
-			}
-			response.Values = values
+			response.Values = v
 		}
 		response.PageNum = pageNum
+		response.PagesCount = pagesCount
 		return response, nil
 	case db.RedisHash:
+		response := hashValuesResponse{}
 		response.KeyType = key.KeyType()
-		values := []RedisValue{}
 		if v, ok := v.(map[string]string); ok {
-			for hashKey, hashValue := range v {
-				values = append(values, RedisValue{Key: hashKey, Value: hashValue})
-			}
+			response.Values = v
 		}
-		response.Values = values
+		response.PageNum = pageNum
+		response.PagesCount = pagesCount
 		return response, nil
 	case db.RedisSet:
+		response := setValuesResponse{}
 		response.KeyType = key.KeyType()
-		values := []RedisValue{}
 		if v, ok := v.([]string); ok {
-			for _, setMember := range v {
-				values = append(values, RedisValue{Value: setMember})
-			}
+			response.Values = v
 		}
-		response.Values = values
+		response.PageNum = pageNum
+		response.PagesCount = pagesCount
 		return response, nil
 
 	default:
