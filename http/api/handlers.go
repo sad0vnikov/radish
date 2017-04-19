@@ -124,9 +124,10 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 }
 
 type valuesResponse struct {
-	KeyType string
-	Values  []RedisValue
-	PageNum int
+	KeyType    string
+	Values     []RedisValue
+	PageNum    int
+	PagesCount int
 }
 
 //RedisValue is a struct that could represent any Redis value
@@ -183,6 +184,12 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 
 	response := valuesResponse{}
 	response.PageNum = pageNum
+	pagesCount, err := key.PagesCount(defaultPageSize)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	response.PagesCount = pagesCount
 	switch key.KeyType() {
 	case db.RedisString:
 		response.KeyType = key.KeyType()
