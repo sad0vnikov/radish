@@ -1,4 +1,5 @@
-module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, initModel)
+module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, 
+  LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), StringRedisValue, ZSetRedisValue, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -29,6 +30,36 @@ type alias LoadedKeys = {
     currentPage: Int
 }
 
+type LoadedValues = MultipleRedisValues RedisValuesPage | SingleRedisValue RedisValue
+
+type alias RedisValuesPage =  {
+    values: RedisValues,
+    pagesCount: Int,
+    currentPage: Int,
+    keyType: KeyType
+}
+
+type alias RedisValue = {
+    value: StringRedisValue,
+    keyType: KeyType
+}
+
+type KeyType = StringRedisKey | HashRedisKey | SetRedisKey | ZSetRedisKey | ListRedisKey | UnknownRedisKey
+
+type RedisValues = StringRedisValue String 
+  | ListRedisValues (List StringRedisValue )
+  | HashRedisValues (Dict String StringRedisValue)
+  | SetRedisValues (List StringRedisValue)
+  | ZSetRedisValues (List ZSetRedisValue)
+
+type alias StringRedisValue = String
+
+type alias ZSetRedisValue = {
+    score: Int,
+    value: String
+}
+
+
 initModel : Flags -> Model
 initModel flags =
   {
@@ -54,3 +85,7 @@ type alias Server = {
 }
 
 type alias RedisKey = String
+
+getChosenServerAndKey : Model -> Maybe (String, String)
+getChosenServerAndKey model =
+    Maybe.map2 (\key server -> (key,server)) model.chosenServer model.chosenKey

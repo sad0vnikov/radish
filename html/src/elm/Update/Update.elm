@@ -5,6 +5,7 @@ import Http
 import Dict exposing (..)
 import View.Toastr as Toastr
 import Update.Msg exposing (Msg(..))
+import Command.Values exposing (..)
 import Command.Keys exposing (..)
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -40,6 +41,11 @@ update msg model =
         updatedModel = {model | loadedKeys = updateKeysPage model.loadedKeys pageNum}
       in
         (updatedModel, getKeysPage updatedModel)
+    KeyChosen key ->
+      let
+        updatedModel = {model | chosenKey = Just key}
+      in
+        (updatedModel, getKeyValues updatedModel)
     _ ->
       (model, Cmd.none)
 

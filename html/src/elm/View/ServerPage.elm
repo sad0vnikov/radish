@@ -68,9 +68,12 @@ workspace model =
                   label [class "input-group-addon"] [i [class "fa fa-search"] []]
                 ]
               ],
-              ul [class "list-group"]
+              div [class "list-group"]
                 (List.map (\key ->
-                  li [class "list-group-item"] [text key]
+                  a [
+                    class ("list-group-item " ++ (if model.chosenKey == Just key then "active" else "")), 
+                    onClick (KeyChosen key)
+                    ] [text key]
                 ) model.loadedKeys.keys)        
           ], 
           div [class "panel-footer"] [
@@ -112,16 +115,16 @@ maybeDrawKeyEditor : Model -> Html Msg
 maybeDrawKeyEditor model =
   case model.chosenKey of
     Just key ->
-      keyEditor model
+      keyEditor model key
     Nothing ->
       div [] []
 
-keyEditor : Model -> Html Msg
-keyEditor model = 
+keyEditor : Model -> String -> Html Msg
+keyEditor model chosenKey = 
   div [] [
     div [class "page-header"] [
       h2 [] [
-        text "a:1 ",
+        text <| chosenKey ++ " ",
         small [] [text "hash value"]
       ]   
     ],
