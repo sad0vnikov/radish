@@ -256,3 +256,25 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	}
 
 }
+
+//DeleteKey deletes a given key
+func DeleteKey(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+
+	requestParams := server.GetURLParams(r)
+	serverName := requestParams["server"]
+	if len(serverName) == 0 {
+		return nil, responds.NewBadRequestError("'server' param is required")
+	}
+
+	keyName := requestParams["key"]
+	if len(keyName) == 0 {
+		return nil, responds.NewBadRequestError("'key' param is required")
+	}
+
+	err := db.DeleteKey(serverName, keyName)
+	if err != nil {
+		return nil, err
+	}
+
+	return "OK", nil
+}

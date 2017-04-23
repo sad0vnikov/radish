@@ -26,6 +26,7 @@ func main() {
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys", api.GetKeysByMask)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/info", api.GetKeyInfo)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/values", api.GetKeyValues)
+	server.AddHandler("DELETE", api.Version()+"/servers/{server}/keys/{key}", api.DeleteKey)
 	server.ServeStatic()
 	server.Init()
 

@@ -3,7 +3,6 @@ package db
 import (
 	"errors"
 	"fmt"
-	"log"
 	"math"
 
 	"github.com/garyburd/redigo/redis"
@@ -88,13 +87,13 @@ func GetKeyInfo(serverName, key string) (Key, error) {
 	conn, err := connector.GetByName(serverName)
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Critical(err)
 		return nil, errors.New("can't connect to server " + serverName)
 	}
 
 	result, err := conn.Do("TYPE", key)
 	if err != nil {
-		log.Fatal(err)
+		logger.Critical(err)
 		return nil, fmt.Errorf("can't get key %v type", key)
 	}
 
@@ -113,6 +112,23 @@ func GetKeyInfo(serverName, key string) (Key, error) {
 	}
 
 	return nil, errors.New("get unknown redis object type")
+}
+
+//DeleteKey deletes a given key
+func DeleteKey(serverName, key string) error {
+	conn, err := connector.GetByName(serverName)
+	if err != nil {
+		logger.Critical(err)
+		return err
+	}
+
+	_, err = conn.Do("DEL", key)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	return nil
 }
 
 func getValuesPagesCount(valuesCout int, pageSize int) int {
