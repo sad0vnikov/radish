@@ -46,6 +46,13 @@ update msg model =
         updatedModel = {model | chosenKey = Just key}
       in
         (updatedModel, getKeyValues updatedModel)
+    KeyValuesLoaded (Ok values) ->
+      ({model | loadedValues = values}, Cmd.none)
+    KeyValuesLoaded (Err err) ->
+      let
+        errorStr = "Got error while loading keys list: " ++ (httpErrorToString err)
+      in
+        (model, Toastr.toastError errorStr)
     _ ->
       (model, Cmd.none)
 

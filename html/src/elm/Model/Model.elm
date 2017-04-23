@@ -1,5 +1,5 @@
 module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, 
-  LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), StringRedisValue, ZSetRedisValue, getChosenServerAndKey, initModel)
+  LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), StringRedisValue, ZSetRedisValue, getLoadedKeyType, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -11,6 +11,8 @@ type alias Model = {
 
   loadedServers: LoadedServers,
   loadedKeys: LoadedKeys,
+  loadedValues: LoadedValues,
+  
   keysMask: String,
 
   chosenServer: Maybe String,
@@ -72,11 +74,18 @@ initModel flags =
       pagesCount = 0,
       currentPage = 1
     },
+    loadedValues = SingleRedisValue <| RedisValue "" StringRedisKey,
     keysMask = "",
     chosenServer = Maybe.Nothing,
     chosenKey = Maybe.Nothing,
     error = Maybe.Nothing
   }
+
+getLoadedKeyType : LoadedValues -> KeyType
+getLoadedKeyType loadedValues =
+  case loadedValues of
+    MultipleRedisValues values -> values.keyType
+    SingleRedisValue value -> value.keyType
 
 type alias Server = {
   name: String,

@@ -61,6 +61,8 @@ decodeValuesList =
     Decode.oneOf [
         decodeListValues
         , decodeZSetValues
+        , decodeHashValues
+        , decodeSetValues
     ]
 
 
@@ -82,4 +84,4 @@ decodeZSetValues =
     Decode.map ZSetRedisValues <| Decode.list <|
         Decode.map2 ZSetRedisValue
             (Decode.field "Score" Decode.int)
-            (Decode.field "Value" Decode.string) 
+            (Decode.field "Member" Decode.string) 
