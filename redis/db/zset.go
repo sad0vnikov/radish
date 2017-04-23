@@ -109,3 +109,19 @@ func UpdateZSetValueIfExists(serverName, key, value string, score int64) error {
 
 	return nil
 }
+
+//DeleteZSetValue deletes a ZSET member
+func DeleteZSetValue(serverName, key, value string) error {
+	conn, err := connector.GetByName(serverName)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Do("ZREM", key, value)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	return nil
+}

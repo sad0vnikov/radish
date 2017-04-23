@@ -97,3 +97,26 @@ func UpdateListValue(serverName, key string, index int, newValue string) error {
 
 	return nil
 }
+
+//DeleteListValue removes List member
+func DeleteListValue(serverName, key string, index int) error {
+	conn, err := connector.GetByName(serverName)
+	if err != nil {
+		return err
+	}
+
+	const deletedValue = "RADISH_DELETED"
+	_, err = conn.Do("LSET", key, index, deletedValue)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	_, err = conn.Do("LREM", key, 1, deletedValue)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	return nil
+}

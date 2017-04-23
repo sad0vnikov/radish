@@ -93,3 +93,18 @@ func SetHashKey(serverName, key, hashKey, hashValue string) error {
 
 	return nil
 }
+
+//DeleteHashValue deletes a Hash value
+func DeleteHashValue(serverName, key, hashKey string) error {
+	conn, err := connector.GetByName(serverName)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Do("HDEL", key, hashKey)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

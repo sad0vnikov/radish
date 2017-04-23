@@ -74,7 +74,7 @@ func AddValueToSet(serverName, key, value string) error {
 
 //UpdateSetValue updates a set member
 func UpdateSetValue(serverName, key, value, newValue string) error {
-	err := RemoveSetValue(serverName, key, value)
+	err := DeleteSetValue(serverName, key, value)
 	if err != nil {
 		return err
 	}
@@ -86,8 +86,8 @@ func UpdateSetValue(serverName, key, value, newValue string) error {
 	return nil
 }
 
-//RemoveSetValue removes a set member
-func RemoveSetValue(serverName, key, value string) error {
+//DeleteSetValue removes a set member
+func DeleteSetValue(serverName, key, value string) error {
 	conn, err := connector.GetByName(serverName)
 	if err != nil {
 		return err

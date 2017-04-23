@@ -389,6 +389,34 @@ func UpdateHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 	return "", nil
 }
 
+//DeleteHashValue updates an exists hash value
+func DeleteHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "hashKey"}, r)
+	if err != nil {
+		return nil, responds.NewBadRequestError(err.Error())
+	}
+	serverName := GetParam("server", r)
+	keyName := GetParam("key", r)
+	hashKey := GetParam("hashKey", r)
+
+	ex, err := db.HashKeyExists(serverName, keyName, hashKey)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	if !ex {
+		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
+	}
+
+	err = db.DeleteHashValue(serverName, keyName, hashKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
+}
+
 //AddListValue adds a new List value
 func AddListValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	err := CheckRequiredParams([]string{"server", "key", "value", "position"}, r)
@@ -440,6 +468,32 @@ func UpdateListValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 	return "", nil
 }
 
+//DeleteListValue updates a list value
+func DeleteListValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "index"}, r)
+	if err != nil {
+		return nil, err
+	}
+
+	indexParam := GetParam("index", r)
+	index, err := strconv.ParseInt(indexParam, 0, 0)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	if index > math.MaxInt32 {
+		logger.Error(err)
+		return nil, responds.NewBadRequestError("'index' is too large")
+	}
+
+	err = db.DeleteListValue(GetParam("server", r), GetParam("key", r), int(index))
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
+}
+
 //AddSetValue adds a new SET member
 func AddSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	err := CheckRequiredParams([]string{"server", "key", "value"}, r)
@@ -463,6 +517,21 @@ func UpdateSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error)
 	}
 
 	err = db.UpdateSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r), GetParam("newValue", r))
+	if err != nil {
+		return "", err
+	}
+
+	return "", err
+}
+
+//DeleteSetValue updates a set member
+func DeleteSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "value"}, r)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.DeleteSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r))
 	if err != nil {
 		return "", err
 	}
@@ -503,6 +572,21 @@ func UpdateZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 	}
 
 	err = db.UpdateZSetValueIfExists(GetParam("server", r), GetParam("key", r), GetParam("value", r), score)
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
+}
+
+//DeleteZSetValue updates a ZSET value
+func DeleteZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "value"}, r)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.DeleteZSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r))
 	if err != nil {
 		return nil, err
 	}
