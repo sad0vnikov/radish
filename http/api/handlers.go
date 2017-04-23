@@ -276,5 +276,236 @@ func DeleteKey(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return "OK", nil
+	return "", nil
+}
+
+//AddStringValue adds a new string value
+func AddStringValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "value"}, r)
+	if err != nil {
+		return nil, responds.NewBadRequestError(err.Error())
+	}
+	serverName := GetParam("server", r)
+	keyName := GetParam("key", r)
+
+	ex, err := db.KeyExists(serverName, keyName)
+	if err != nil {
+		return nil, err
+	}
+
+	if ex {
+		return nil, responds.NewConflictError(fmt.Sprintf("key %v already exists", keyName))
+	}
+
+	err = db.Set(serverName, keyName, GetParam("value", r))
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
+}
+
+//UpdateStringValue updates a string value
+func UpdateStringValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "value"}, r)
+	if err != nil {
+		return nil, responds.NewBadRequestError(err.Error())
+	}
+	serverName := GetParam("server", r)
+	keyName := GetParam("key", r)
+
+	ex, err := db.KeyExists(serverName, keyName)
+	if err != nil {
+		return nil, err
+	}
+
+	if !ex {
+		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
+	}
+
+	err = db.Set(serverName, keyName, GetParam("value", r))
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
+}
+
+//AddHashValue adds a new redis Hash value
+func AddHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "hashKey", "hashValue"}, r)
+	if err != nil {
+		return nil, responds.NewBadRequestError(err.Error())
+	}
+	serverName := GetParam("server", r)
+	keyName := GetParam("key", r)
+	hashKey := GetParam("hashKey", r)
+	hashValue := GetParam("hashValue", r)
+
+	ex, err := db.HashKeyExists(serverName, keyName, hashKey)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	if ex {
+		return nil, responds.NewConflictError(fmt.Sprintf("key %v already exists", keyName))
+	}
+
+	err = db.SetHashKey(serverName, keyName, hashKey, hashValue)
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
+}
+
+//UpdateHashValue updates an exists hash value
+func UpdateHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "hashKey", "hashValue"}, r)
+	if err != nil {
+		return nil, responds.NewBadRequestError(err.Error())
+	}
+	serverName := GetParam("server", r)
+	keyName := GetParam("key", r)
+	hashKey := GetParam("hashKey", r)
+	hashValue := GetParam("hashValue", r)
+
+	ex, err := db.HashKeyExists(serverName, keyName, hashKey)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	if !ex {
+		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
+	}
+
+	err = db.SetHashKey(serverName, keyName, hashKey, hashValue)
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
+}
+
+//AddListValue adds a new List value
+func AddListValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "value", "position"}, r)
+	if err != nil {
+		return nil, err
+	}
+
+	positionParam := GetParam("position", r)
+	position, err := strconv.ParseInt(positionParam, 0, 0)
+	if err != nil {
+		return nil, responds.NewBadRequestError("'position' should be int")
+	}
+
+	if position > math.MaxInt32 {
+		return nil, responds.NewBadRequestError("'position' is too large")
+	}
+
+	err = db.InsertToList(GetParam("server", r), GetParam("key", r), GetParam("value", r), int(position))
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
+}
+
+//UpdateListValue updates a list value
+func UpdateListValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "index", "value"}, r)
+	if err != nil {
+		return nil, err
+	}
+
+	indexParam := GetParam("index", r)
+	index, err := strconv.ParseInt(indexParam, 0, 0)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+	if index > math.MaxInt32 {
+		logger.Error(err)
+		return nil, responds.NewBadRequestError("'index' is too large")
+	}
+
+	err = db.UpdateListValue(GetParam("server", r), GetParam("key", r), int(index), GetParam("value", r))
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
+}
+
+//AddSetValue adds a new SET member
+func AddSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "value"}, r)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.AddValueToSet(GetParam("server", r), GetParam("key", r), GetParam("value", r))
+	if err != nil {
+		return "", err
+	}
+
+	return "", err
+}
+
+//UpdateSetValue updates a set member
+func UpdateSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "value", "newValue"}, r)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.UpdateSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r), GetParam("newValue", r))
+	if err != nil {
+		return "", err
+	}
+
+	return "", err
+}
+
+//AddZSetValue adds a new ZSET value
+func AddZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "value", "score"}, r)
+	if err != nil {
+		return nil, err
+	}
+
+	score, err := strconv.ParseInt(GetParam("score", r), 0, 0)
+	if err != nil {
+		return nil, responds.NewBadRequestError("'score' should be int")
+	}
+
+	err = db.AddZSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r), score)
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
+}
+
+//UpdateZSetValue updates a ZSET value
+func UpdateZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server", "key", "value", "score"}, r)
+	if err != nil {
+		return nil, err
+	}
+
+	score, err := strconv.ParseInt(GetParam("score", r), 0, 0)
+	if err != nil {
+		return nil, responds.NewBadRequestError("'score' should be int")
+	}
+
+	err = db.UpdateZSetValueIfExists(GetParam("server", r), GetParam("key", r), GetParam("value", r), score)
+	if err != nil {
+		return nil, err
+	}
+
+	return "", nil
 }

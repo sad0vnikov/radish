@@ -36,6 +36,20 @@ func NewBadRequestError(msg string) error {
 	return &APIBadRequestError{msg}
 }
 
+//APIConflictError is a 309 HTTP error
+type APIConflictError struct {
+	msg string
+}
+
+func (err APIConflictError) Error() string {
+	return err.msg
+}
+
+//NewConflictError returns a new APIConflictError
+func NewConflictError(msg string) error {
+	return &APIConflictError{msg}
+}
+
 //RespondInternalError responds with 500 Internal Error HTTP status
 func RespondInternalError(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)
@@ -50,6 +64,12 @@ func RespondBadRequest(w http.ResponseWriter, message string) {
 //RespondNotFound responds with 404 Not Found HTTP status
 func RespondNotFound(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNotFound)
+}
+
+//RespondConflictError responds with 309 HTTP error
+func RespondConflictError(w http.ResponseWriter, message string) {
+	w.WriteHeader(http.StatusConflict)
+	fmt.Fprintf(w, message)
 }
 
 //RespondJSON writes JSON to http output

@@ -77,3 +77,35 @@ func (key ZSetKey) Values(pageNum int, pageSize int) (interface{}, error) {
 	return zSetValues, nil
 
 }
+
+//AddZSetValue adds a new sorted set value if it doesn't exist
+func AddZSetValue(serverName, key, value string, score int64) error {
+	conn, err := connector.GetByName(serverName)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Do("ZADD", key, "NX", score, value)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+//UpdateZSetValueIfExists updates a ZSet value if it exists
+func UpdateZSetValueIfExists(serverName, key, value string, score int64) error {
+	conn, err := connector.GetByName(serverName)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Do("ZADD", key, "XX", score, value)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	return nil
+}

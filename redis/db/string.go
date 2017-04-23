@@ -28,6 +28,23 @@ func (StringKey) KeyType() string {
 	return RedisString
 }
 
+//Set sets string value
+func Set(serverName, key, value string) error {
+	conn, err := connector.GetByName(serverName)
+	if err != nil {
+		logger.Critical(err)
+		return err
+	}
+
+	_, err = conn.Do("SET", key, value)
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	return nil
+}
+
 //GetStringKeyValue returns a value for STRING type object
 func getStringKeyValue(serverName, key string) (string, error) {
 	conn, err := connector.GetByName(serverName)

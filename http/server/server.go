@@ -47,6 +47,10 @@ func (server HTTPServer) AddHandler(method, path string, h apiHandler) {
 				responds.RespondBadRequest(w, brerr.Error())
 				return
 			}
+			if cerr, ok := err.(*responds.APIConflictError); ok {
+				responds.RespondConflictError(w, cerr.Error())
+				return
+			}
 			if err != nil {
 				responds.RespondInternalError(w)
 				return

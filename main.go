@@ -27,6 +27,17 @@ func main() {
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/info", api.GetKeyInfo)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/values", api.GetKeyValues)
 	server.AddHandler("DELETE", api.Version()+"/servers/{server}/keys/{key}", api.DeleteKey)
+	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/strings/{key}/values", api.AddStringValue)
+	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/strings/{key}/values", api.UpdateStringValue)
+	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/lists/{key}/values", api.AddListValue)
+	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/lists/{key}/values", api.UpdateListValue)
+	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/hashes/{key}/values", api.AddHashValue)
+	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/hashes/{key}/values", api.UpdateHashValue)
+	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/sets/{key}/values", api.AddSetValue)
+	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/sets/{key}/values", api.UpdateSetValue)
+	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/zsets/{key}/values", api.AddZSetValue)
+	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/zsets/{key}/values", api.UpdateZSetValue)
+
 	server.ServeStatic()
 	server.Init()
 

@@ -60,3 +60,36 @@ func (key HashKey) Values(pageNum int, pageSize int) (interface{}, error) {
 
 	return valuesMap, nil
 }
+
+//HashKeyExists Hash has given key
+func HashKeyExists(serverName, key, hashKey string) (bool, error) {
+
+	conn, err := connector.GetByName(serverName)
+	if err != nil {
+		return false, err
+	}
+
+	r, err := conn.Do("HEXISTS", key, hashKey)
+	exists, err := redis.Bool(r, err)
+	if err != nil {
+		logger.Error(err)
+		return false, err
+	}
+
+	return exists, nil
+}
+
+//SetHashKey sets a hash value
+func SetHashKey(serverName, key, hashKey, hashValue string) error {
+	conn, err := connector.GetByName(serverName)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Do("HSET", key, hashKey, hashValue)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
