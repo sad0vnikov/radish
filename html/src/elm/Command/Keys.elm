@@ -1,4 +1,4 @@
-module Command.Keys exposing (getKeysPage)
+module Command.Keys exposing (getKeysPage, deleteKey)
 
 import Model.Model exposing (Model, RedisKey, LoadedKeys)
 import Update.Msg exposing (Msg(..))
@@ -27,3 +27,15 @@ sanitizeKeysMask mask =
 keysListDecoder : Decode.Decoder LoadedKeys
 keysListDecoder =
     Decode.map3 LoadedKeys (Decode.field "Keys" (Decode.list Decode.string)) (Decode.field "PagesCount" Decode.int) (Decode.field "Page" Decode.int)
+
+
+deleteKey : String -> Model -> Cmd Msg
+deleteKey key model =
+    case model.chosenServer of
+        Just chosenServer ->
+            let
+                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/" ++ key ++ "/delete"
+            in
+                Http.send KeyDeleted (Http.getString url)
+        Nothing ->
+            Cmd.none

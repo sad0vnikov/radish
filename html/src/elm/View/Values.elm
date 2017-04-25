@@ -3,7 +3,9 @@ module View.Values exposing (..)
 import Dict exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Update.Msg exposing (Msg)
+import Update.Msg exposing (Msg(..))
+import Html.Events exposing (onClick)
+
 
 import Model.Model exposing (..)
 
@@ -47,7 +49,7 @@ keyEditor model chosenKey =
         small [] [drawKeyType model.loadedValues]
       ]   
     ],
-    drawKeyValuesEditorByType model
+    drawKeyValuesEditorByType chosenKey model
   ]
 
 drawKeyType : LoadedValues -> Html Msg
@@ -60,15 +62,15 @@ drawKeyType loadedValues =
     HashRedisKey -> text "hash"
     UnknownRedisKey -> text "unknown key type"
 
-drawKeyValuesEditorByType : Model -> Html Msg
-drawKeyValuesEditorByType model = 
+drawKeyValuesEditorByType : String -> Model -> Html Msg
+drawKeyValuesEditorByType key model = 
     case model.loadedValues of
-        MultipleRedisValues values -> drawMultipleRedisValues values
-        SingleRedisValue value ->  drawSingleRedisValue value
+        MultipleRedisValues values -> drawMultipleRedisValues key values
+        SingleRedisValue value ->  drawSingleRedisValue key value
 
 
-drawMultipleRedisValues : RedisValuesPage -> Html Msg
-drawMultipleRedisValues redisValuesPage =
+drawMultipleRedisValues : String -> RedisValuesPage -> Html Msg
+drawMultipleRedisValues key redisValuesPage =
     case redisValuesPage.values of
         ListRedisValues values -> listKeyValues values
         HashRedisValues values -> hashKeyValues values
@@ -78,16 +80,16 @@ drawMultipleRedisValues redisValuesPage =
             div [] []
 
 
-drawSingleRedisValue : RedisValue -> Html Msg
-drawSingleRedisValue redisValue =
-    stringKeyValues redisValue.value
+drawSingleRedisValue : String -> RedisValue -> Html Msg
+drawSingleRedisValue key redisValue =
+    stringKeyValues key redisValue.value
 
  
-stringKeyValues : StringRedisValue -> Html Msg
-stringKeyValues value =
+stringKeyValues : String -> StringRedisValue -> Html Msg
+stringKeyValues key value =
   div [] [
     div [class "btn-toolbar"] [
-      button [class "btn btn-sm btn-danger"] [
+      button [class "btn btn-sm btn-danger", onClick (KeyDeletionChosen key)] [
           i [class "fa fa-remove"] [],
           text " Delete"
       ]

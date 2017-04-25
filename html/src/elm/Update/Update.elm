@@ -53,6 +53,12 @@ update msg model =
         errorStr = "Got error while loading keys list: " ++ (httpErrorToString err)
       in
         (model, Toastr.toastError errorStr)
+    KeyDeletionChosen key ->
+      (model, deleteKey key model)
+    KeyDeleted (Ok response) ->
+      ({model | chosenKey = Nothing}, getKeysPage model)
+    KeyDeleted (Err err) ->
+      (model, Toastr.toastError <| "Got error while deleting key: " ++ (httpErrorToString err) )
     _ ->
       (model, Cmd.none)
 
