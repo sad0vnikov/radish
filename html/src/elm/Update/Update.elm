@@ -7,6 +7,7 @@ import View.Toastr as Toastr
 import Update.Msg exposing (Msg(..))
 import Command.Values exposing (..)
 import Command.Keys exposing (..)
+import View.ConfirmationDialog exposing (..)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -46,6 +47,12 @@ update msg model =
         updatedModel = {model | chosenKey = Just key}
       in
         (updatedModel, getKeyValues updatedModel)
+    UserConfirmation ->
+      case model.waitingForConfirmation of
+        Just value ->
+          getConfirmedMessage model value
+        Nothing ->
+          (model, Cmd.none)
     KeyValuesLoaded (Ok values) ->
       ({model | loadedValues = values}, Cmd.none)
     KeyValuesLoaded (Err err) ->
@@ -53,8 +60,14 @@ update msg model =
         errorStr = "Got error while loading keys list: " ++ (httpErrorToString err)
       in
         (model, Toastr.toastError errorStr)
-    KeyDeletionChosen key ->
-      (model, deleteKey key model)
+    KeyDeletionConfirm key ->
+      case model.chosenKey of
+        Just chosenKey ->
+          ({model | waitingForConfirmation = Just (KeyDeletion chosenKey)}, showConfirmationDialog "Do you really want to delete this key?")
+        Nothing ->
+          (model, Cmd.none)
+    KeyDeletionConfirmed key ->
+      (model, deleteKey key model) 
     KeyDeleted (Ok response) ->
       ({model | chosenKey = Nothing}, getKeysPage model)
     KeyDeleted (Err err) ->
@@ -62,6 +75,11 @@ update msg model =
     _ ->
       (model, Cmd.none)
 
+getConfirmedMessage : Model -> UserConfirmation -> (Model, Cmd Msg)
+getConfirmedMessage model confirmation =
+  case confirmation of
+    KeyDeletion key ->
+      update (KeyDeletionConfirmed key) model
 
 
 updateServersList: LoadedServers -> Dict String Server -> LoadedServers

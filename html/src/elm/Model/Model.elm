@@ -1,5 +1,5 @@
 module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, 
-  LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), StringRedisValue, ZSetRedisValue, getLoadedKeyType, getChosenServerAndKey, initModel)
+  LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), StringRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -18,7 +18,9 @@ type alias Model = {
   chosenServer: Maybe String,
   chosenKey: Maybe String,
 
-  error: Maybe String
+  error: Maybe String,
+
+  waitingForConfirmation: Maybe UserConfirmation
 }
 
 
@@ -61,6 +63,8 @@ type alias ZSetRedisValue = {
     value: String
 }
 
+type UserConfirmation = KeyDeletion String
+
 
 initModel : Flags -> Model
 initModel flags =
@@ -78,7 +82,8 @@ initModel flags =
     keysMask = "",
     chosenServer = Maybe.Nothing,
     chosenKey = Maybe.Nothing,
-    error = Maybe.Nothing
+    error = Maybe.Nothing,
+    waitingForConfirmation = Nothing
   }
 
 getLoadedKeyType : LoadedValues -> KeyType

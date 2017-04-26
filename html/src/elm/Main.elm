@@ -5,9 +5,10 @@ import Html exposing (program)
 import View.ServerPage exposing (..)
 import Model.Model exposing (..)
 import Update.Update exposing (update)
-import Update.Msg exposing (Msg)
+import Update.Msg exposing (Msg(..))
 import Flags exposing (Flags)
 import Command.Servers exposing (getServersList)
+import View.ConfirmationDialog exposing (..)
 
 main : Program Flags Model Msg
 main =
@@ -15,7 +16,14 @@ main =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model = Sub.none
+subscriptions model = 
+  dialogClosed (\s -> 
+      case s of
+        "ok" ->
+          UserConfirmation
+        _ ->
+          UserConfirmationCancel
+    )
 
 
 init : Flags -> (Model, Cmd Msg)

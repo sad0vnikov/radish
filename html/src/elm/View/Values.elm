@@ -89,7 +89,7 @@ stringKeyValues : String -> StringRedisValue -> Html Msg
 stringKeyValues key value =
   div [] [
     div [class "btn-toolbar"] [
-      button [class "btn btn-sm btn-danger", onClick (KeyDeletionChosen key)] [
+      button [class "btn btn-sm btn-danger", onClick (KeyDeletionConfirm key)] [
           i [class "fa fa-remove"] [],
           text " Delete"
       ]

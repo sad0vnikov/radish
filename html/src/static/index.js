@@ -30,3 +30,20 @@ app.ports.toastSuccess.subscribe(function(message) {
     toastr.success(message)
 })
 
+app.ports.showConfirmationDialog.subscribe(function(message) {
+    $('#modal .modal-body').html(message);
+    $('#modal').modal();
+
+    $('#modal .confirm').click(function() {
+        $('#modal').data("message", "ok");
+        $('#modal').modal('hide');
+    });
+
+    $('#modal .cancel').click(function() {
+        $('#modal').data("message", "cancel");
+    });
+
+    $('#modal').on('hidden.bs.modal', function() {
+        app.ports.dialogClosed.send($('#modal').data('message'));
+    })
+});
