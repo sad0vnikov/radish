@@ -153,7 +153,7 @@ drawListValueRow listMember =
         ],
         td [] [
             button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil"] []],
-            button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove"] []]
+            button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm <| toString listMember.index)] []]
         ]
     ]
 
