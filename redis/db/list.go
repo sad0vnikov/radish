@@ -11,6 +11,12 @@ type ListKey struct {
 	serverName string
 }
 
+//ListMember represents List member value
+type ListMember struct {
+	Index int
+	Value string
+}
+
 //KeyType returns List key type
 func (key ListKey) KeyType() string {
 	return RedisList
@@ -42,11 +48,18 @@ func (key ListKey) Values(pageNum, pageSize int) (interface{}, error) {
 	pageStart := pageNum * pageSize
 	pageEnd := (pageNum + 1) * pageSize
 	r, err := conn.Do("LRANGE", key.key, pageStart, pageEnd)
-	values, err := redis.Strings(r, err)
+	strings, err := redis.Strings(r, err)
 
 	if err != nil {
 		logger.Error(err)
 		return nil, err
+	}
+
+	var values = make([]ListMember, len(strings))
+	memberIndex := pageStart
+	for i, v := range strings {
+		values[i] = ListMember{Value: v, Index: i}
+		memberIndex++
 	}
 
 	return values, nil

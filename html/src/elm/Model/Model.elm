@@ -1,5 +1,5 @@
 module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, 
-  LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), StringRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
+  LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), StringRedisValue, ListRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -51,7 +51,7 @@ type alias RedisValue = {
 type KeyType = StringRedisKey | HashRedisKey | SetRedisKey | ZSetRedisKey | ListRedisKey | UnknownRedisKey
 
 type RedisValues = StringRedisValue String 
-  | ListRedisValues (List StringRedisValue )
+  | ListRedisValues (List ListRedisValue )
   | HashRedisValues (Dict String StringRedisValue)
   | SetRedisValues (List StringRedisValue)
   | ZSetRedisValues (List ZSetRedisValue)
@@ -60,6 +60,11 @@ type alias StringRedisValue = String
 
 type alias ZSetRedisValue = {
     score: Int,
+    value: String
+}
+
+type alias ListRedisValue = {
+    index: Int,
     value: String
 }
 

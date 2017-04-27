@@ -4,7 +4,7 @@ import Update.Msg exposing (Msg(KeyValuesLoaded, ValueDeleted))
 import Json.Decode as Decode
 import Model.Model exposing (Model, LoadedKeys, LoadedValues, KeyType, RedisKey,
   LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), 
-  StringRedisValue, ZSetRedisValue, getChosenServerAndKey, getLoadedKeyType)
+  StringRedisValue, ListRedisValue, ZSetRedisValue, getChosenServerAndKey, getLoadedKeyType)
 import Http
 import Maybe exposing (andThen)
 
@@ -88,7 +88,7 @@ decodeValuesList =
 decodeListValues : Decode.Decoder RedisValues
 decodeListValues =
     Decode.map ListRedisValues <|
-        Decode.list Decode.string
+        Decode.list <| Decode.map2 ListRedisValue (Decode.field "Index" Decode.int) (Decode.field "Value" Decode.string)
 
 decodeHashValues : Decode.Decoder RedisValues
 decodeHashValues = 

@@ -130,7 +130,7 @@ type singleValueResponse struct {
 
 type listValuesResponse struct {
 	KeyType    string
-	Values     []string
+	Values     []db.ListMember
 	PageNum    int
 	PagesCount int
 }
@@ -216,7 +216,7 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	case db.RedisList:
 		response := listValuesResponse{}
 		response.KeyType = key.KeyType()
-		if strings, ok := v.([]string); ok {
+		if strings, ok := v.([]db.ListMember); ok {
 			response.Values = strings
 		}
 		response.PageNum = pageNum

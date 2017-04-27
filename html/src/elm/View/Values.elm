@@ -129,11 +129,12 @@ drawHashValueRow key value =
          ]
     ]
 
-listKeyValues : (List StringRedisValue) -> Html Msg
+listKeyValues : (List ListRedisValue) -> Html Msg
 listKeyValues values = 
   div [] [
     table [class "table"] [
       thead [] [
+        th [] [text "index"],
         th [] [text "value"],
         th [] []
       ],
@@ -141,11 +142,14 @@ listKeyValues values =
     ]
   ]
 
-drawListValueRow : StringRedisValue -> Html Msg
-drawListValueRow value = 
+drawListValueRow : ListRedisValue -> Html Msg
+drawListValueRow listMember = 
     tr [] [
         td [] [
-            text value
+            text <| toString listMember.index
+        ],
+        td [] [
+            text listMember.value
         ],
         td [] [
             button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil"] []],
