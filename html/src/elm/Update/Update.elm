@@ -72,6 +72,14 @@ update msg model =
       ({model | chosenKey = Nothing}, getKeysPage model)
     KeyDeleted (Err err) ->
       (model, Toastr.toastError <| "Got error while deleting key: " ++ (httpErrorToString err) )
+    ValueDeletionConfirm value ->
+      ({model | waitingForConfirmation = Just (ValueDeletion value)}, showConfirmationDialog "Do you really want to delete this value?")
+    ValueDeletionConfirmed value ->
+      (model, deleteValue model value)
+    ValueDeleted (Ok response) ->
+      (model, getKeyValues model) 
+    ValueDeleted (Err err) ->
+      (model, Toastr.toastError <| "Got error while deleting value: " ++ (httpErrorToString err))
     _ ->
       (model, Cmd.none)
 
@@ -80,6 +88,8 @@ getConfirmedMessage model confirmation =
   case confirmation of
     KeyDeletion key ->
       update (KeyDeletionConfirmed key) model
+    ValueDeletion value ->
+      update (ValueDeletionConfirmed value) model
 
 
 updateServersList: LoadedServers -> Dict String Server -> LoadedServers

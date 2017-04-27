@@ -63,7 +63,7 @@ type alias ZSetRedisValue = {
     value: String
 }
 
-type UserConfirmation = KeyDeletion String
+type UserConfirmation = KeyDeletion String | ValueDeletion String
 
 
 initModel : Flags -> Model

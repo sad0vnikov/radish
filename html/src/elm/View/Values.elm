@@ -125,7 +125,7 @@ drawHashValueRow key value =
          ],
          td [] [
            button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil"] []],
-           button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove"] []]
+           button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm key)] []]
          ]
     ]
 
@@ -174,7 +174,7 @@ drawSetValueRow value =
           ],
         td [] [
             button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil"] []],
-            button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove"] []]
+            button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm value)] []]
         ]
     ]
 
@@ -204,6 +204,6 @@ drawSortedSetValueRow value =
         ],
         td [] [
             button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil"] []],
-            button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove"] []]
+            button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm value.value)] []]
         ]
     ]
