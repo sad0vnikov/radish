@@ -2,7 +2,7 @@ module Update.Msg exposing (Msg(..))
 
 import Http
 import Dict exposing (Dict)
-import Model.Model exposing (LoadedKeys, Server, RedisKey, RedisValue, LoadedValues)
+import Model.Model exposing (LoadedKeys, Server, RedisKey, RedisValue, StringRedisValue, LoadedValues)
 
 type Msg = NoOp 
   | ChosenServer String 
@@ -20,3 +20,8 @@ type Msg = NoOp
   | ValueDeleted (Result Http.Error String)
   | UserConfirmation
   | UserConfirmationCancel
+  | ValueToEditSelected String
+  | ValueEditingCanceled
+  | EditedValueChanged String
+  | ValueUpdateInitialized StringRedisValue 
+  | ValueUpdated (Result Http.Error ())

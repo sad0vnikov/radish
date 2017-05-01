@@ -4,7 +4,7 @@ import Dict exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Update.Msg exposing (Msg(..))
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 
 
 import Model.Model exposing (..)
@@ -66,7 +66,7 @@ drawKeyValuesEditorByType : String -> Model -> Html Msg
 drawKeyValuesEditorByType key model = 
     case model.loadedValues of
         MultipleRedisValues values -> drawMultipleRedisValues key values
-        SingleRedisValue value ->  drawSingleRedisValue key value
+        SingleRedisValue value ->  drawSingleRedisValue model key value
 
 
 drawMultipleRedisValues : String -> RedisValuesPage -> Html Msg
@@ -80,26 +80,46 @@ drawMultipleRedisValues key redisValuesPage =
             div [] []
 
 
-drawSingleRedisValue : String -> RedisValue -> Html Msg
-drawSingleRedisValue key redisValue =
-    stringKeyValues key redisValue.value
+drawSingleRedisValue : Model -> String -> RedisValue -> Html Msg
+drawSingleRedisValue model key redisValue =
+    stringKeyValues model key redisValue.value
 
  
-stringKeyValues : String -> StringRedisValue -> Html Msg
-stringKeyValues key value =
+stringKeyValues : Model -> String -> StringRedisValue -> Html Msg
+stringKeyValues model key value =
   div [] [
     div [class "btn-toolbar"] [
       button [class "btn btn-sm btn-danger", onClick (KeyDeletionConfirm key)] [
           i [class "fa fa-remove"] [],
           text " Delete"
+      ],
+      button [class "btn btn-sm"] [
+          i [class "fa fa-edit", onClick <| ValueToEditSelected value] [],
+          text " Edit"
       ]
     ],
     div [class "top-buffer"] [
-        div [class "well"] [
-          text value
-        ]
+        drawValueOrEditField model value
     ]
   ]
+
+drawValueOrEditField : Model -> StringRedisValue -> Html Msg
+drawValueOrEditField model value =
+  case model.editingValue of
+    Nothing ->
+      div [class "well"] [
+          text value
+      ]
+    Just valueToEdit ->
+      div[class "row"] [
+        div [class "col-md-10"] [
+           textarea [class "form-control", onInput EditedValueChanged] [text model.editingValueToSave]
+        ],
+        div [class "col-md-2"] [
+           button [class "btn btn-sm btn-primary btn-block"] [i [class "fa fa-save", onClick <| ValueUpdateInitialized value] []],
+           button [class "btn btn-sm btn-default btn-block", onClick ValueEditingCanceled] [i [class "fa fa-times"] []]           
+        ]
+      ]
 
 hashKeyValues : (Dict String StringRedisValue) -> Html Msg
 hashKeyValues values = 

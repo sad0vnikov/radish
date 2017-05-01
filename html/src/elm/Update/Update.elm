@@ -80,6 +80,22 @@ update msg model =
       (model, getKeyValues model) 
     ValueDeleted (Err err) ->
       (model, Toastr.toastError <| "Got error while deleting value: " ++ (httpErrorToString err))
+    ValueToEditSelected value ->
+      case model.chosenKey of
+        Just key -> ({model | editingValue = Just (key, value), editingValueToSave = value}, Cmd.none)
+        Nothing -> (model, Cmd.none)
+    EditedValueChanged value ->
+      ({model | editingValueToSave = value}, Cmd.none)
+    ValueEditingCanceled ->
+      ({model | editingValue = Nothing}, Cmd.none)
+    ValueUpdateInitialized value ->
+      case model.chosenKey of
+        Just key -> (model, updateValue model value model.editingValueToSave)
+        Nothing -> (model, Cmd.none)
+    ValueUpdated (Ok response) ->
+      ({model | editingValue = Nothing}, getKeyValues model)
+    ValueUpdated (Err err) ->
+      (model, Toastr.toastError <| "Error while updating value: " ++ (httpErrorToString err))
     _ ->
       (model, Cmd.none)
 
