@@ -59,6 +59,7 @@ valueEditJsonRequest model keyType =
     case keyType of
         StringRedisKey -> (Encode.object [("Value", Encode.string model.editingValueToSave)])
         HashRedisKey -> (Encode.object [("Value", Encode.string model.editingValueToSave)])
+        ListRedisKey -> (Encode.object [("Value", Encode.string model.editingValueToSave)])        
         _ -> (Encode.object [])
 
 
@@ -67,9 +68,9 @@ valueEditUrlPath chosenKey keyType value  =
     case keyType of
         StringRedisKey -> "/strings/" ++ chosenKey
         HashRedisKey -> "/hashes/" ++ chosenKey ++ "/values/" ++ value
-        SetRedisKey -> "/sets/" ++ chosenKey ++ "/values/" ++ value ++ "/update"
+        SetRedisKey -> "/sets/" ++ chosenKey ++ "/values/" ++ value
         ZSetRedisKey -> "/zsets/" ++ chosenKey ++ "/values/" ++ value ++ "/update"
-        ListRedisKey -> "/lists/" ++ chosenKey ++ "/values/" ++ value ++ "/update"
+        ListRedisKey -> "/lists/" ++ chosenKey ++ "/values/" ++ value
         UnknownRedisKey -> ""
 
 valuesDecoder : Decode.Decoder LoadedValues

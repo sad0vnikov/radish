@@ -72,7 +72,7 @@ drawKeyValuesEditorByType key model =
 drawMultipleRedisValues : Model -> String -> RedisValuesPage -> Html Msg
 drawMultipleRedisValues model key redisValuesPage =
     case redisValuesPage.values of
-        ListRedisValues values -> listKeyValues values
+        ListRedisValues values -> listKeyValues model values
         HashRedisValues values -> hashKeyValues model values
         SetRedisValues values -> setKeyValues values
         ZSetRedisValues values -> sortedSetValues values
@@ -179,8 +179,8 @@ drawHashValueEditFields model hashKey hashValue =
   ]
 
 
-listKeyValues : (List ListRedisValue) -> Html Msg
-listKeyValues values = 
+listKeyValues : Model -> (List ListRedisValue) -> Html Msg
+listKeyValues model values = 
   div [] [
     table [class "table"] [
       thead [] [
@@ -188,12 +188,23 @@ listKeyValues values =
         th [] [text "value"],
         th [] []
       ],
-      tbody [] <| List.map drawListValueRow values
+      tbody [] <| List.map (drawListValueOrEditFields model) values
     ]
   ]
 
-drawListValueRow : ListRedisValue -> Html Msg
-drawListValueRow listMember = 
+drawListValueOrEditFields : Model -> ListRedisValue -> Html Msg
+drawListValueOrEditFields model value =
+  case model.editingValue of
+    Just (key, valueReference) ->
+      if valueReference == toString value.index then
+        drawListValueEditFields model value
+      else 
+        drawListValueRow model value 
+
+    Nothing -> drawListValueRow model value    
+
+drawListValueRow : Model -> ListRedisValue -> Html Msg
+drawListValueRow  model listMember = 
     tr [] [
         td [] [
             text <| toString listMember.index
@@ -202,10 +213,29 @@ drawListValueRow listMember =
             text listMember.value
         ],
         td [] [
-            button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil"] []],
+            button [class "btn btn-sm", onClick <| ValueToEditSelected (toString listMember.index, listMember.value)] [i [class "fa fa-pencil"] []],
             button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm <| toString listMember.index)] []]
         ]
     ]
+
+drawListValueEditFields : Model -> ListRedisValue -> Html Msg
+drawListValueEditFields model listMember =
+  tr [] [
+    td [] [
+        text <| toString listMember.index
+      ],
+      td [] [
+        input [class "form-control", onInput EditedValueChanged, Html.Attributes.value model.editingValueToSave] []
+      ],
+      td [] [
+        button [class "btn btn-sm btn-primary"] [
+          i [class "fa fa-save", onClick <| ValueUpdateInitialized (toString listMember.index)] []
+        ],
+        button [class "btn btn-sm btn-default"] [
+          i [class "fa fa-times", onClick ValueEditingCanceled] []
+        ]
+      ]
+  ]
 
 setKeyValues : (List StringRedisValue) -> Html Msg
 setKeyValues values = 
