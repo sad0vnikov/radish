@@ -28,7 +28,7 @@ deleteValue model valueToDelete =
             let
                 url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/" ++ valueDeleteUrlPath chosenKey (getLoadedKeyType model.loadedValues) valueToDelete
             in
-                Http.send ValueDeleted (Http.getString url)
+                Http.send ValueDeleted (delete url)
         Nothing ->
             Cmd.none
     
@@ -36,10 +36,10 @@ valueDeleteUrlPath :  RedisKey -> KeyType -> String -> String
 valueDeleteUrlPath chosenKey keyType value =
     case keyType of
         StringRedisKey -> ""
-        HashRedisKey -> "/hashes/" ++ chosenKey ++ "/values/" ++ value ++ "/delete"
-        SetRedisKey -> "/sets/" ++ chosenKey ++ "/values/" ++ value ++ "/delete"
-        ZSetRedisKey -> "/zsets/" ++ chosenKey ++ "/values/" ++ value ++ "/delele"
-        ListRedisKey -> "/lists/" ++ chosenKey ++ "/values/" ++ value ++ "/delete"
+        HashRedisKey -> "/hashes/" ++ chosenKey ++ "/values/" ++ value
+        SetRedisKey -> "/sets/" ++ chosenKey ++ "/values/" ++ value
+        ZSetRedisKey -> "/zsets/" ++ chosenKey ++ "/values/" ++ value
+        ListRedisKey -> "/lists/" ++ chosenKey ++ "/values/" ++ value
         UnknownRedisKey -> ""
 
 updateValue : Model -> String -> String -> Cmd Msg

@@ -4,6 +4,7 @@ import Model.Model exposing (Model, RedisKey, LoadedKeys)
 import Update.Msg exposing (Msg(..))
 import Http
 import Json.Decode as Decode
+import Command.Http.Requests exposing (delete)
 
 getKeysPage : Model -> Cmd Msg
 getKeysPage model =
@@ -34,8 +35,8 @@ deleteKey key model =
     case model.chosenServer of
         Just chosenServer ->
             let
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/" ++ key ++ "/delete"
+                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/" ++ key
             in
-                Http.send KeyDeleted (Http.getString url)
+                Http.send KeyDeleted (delete url)
         Nothing ->
             Cmd.none

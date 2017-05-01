@@ -14,10 +14,10 @@ type Msg = NoOp
   | KeyValuesLoaded (Result Http.Error LoadedValues)
   | KeyDeletionConfirm RedisKey
   | KeyDeletionConfirmed RedisKey
-  | KeyDeleted (Result Http.Error String)
+  | KeyDeleted (Result Http.Error ())
   | ValueDeletionConfirm String
   | ValueDeletionConfirmed String
-  | ValueDeleted (Result Http.Error String)
+  | ValueDeleted (Result Http.Error ())
   | UserConfirmation
   | UserConfirmationCancel
   | ValueToEditSelected (String, StringRedisValue)
