@@ -28,23 +28,23 @@ func main() {
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/values", api.GetKeyValues)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/delete", api.DeleteKey)
 
-	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/strings/{key}/values/add", api.AddStringValue)
-	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/strings/{key}/values/update", api.UpdateStringValue)
+	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/strings/{key}", api.AddStringValue)
+	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/strings/{key}", api.UpdateStringValue)
 
-	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/lists/{key}/values/add", api.AddListValue)
-	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/lists/{key}/values/update", api.UpdateListValue)
+	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/lists/{key}/values", api.AddListValue)
+	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/lists/{key}/values/{index}", api.UpdateListValue)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/lists/{key}/values/{index}/delete", api.DeleteListValue)
 
-	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/hashes/{key}/values/add", api.AddHashValue)
-	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/hashes/{key}/values/update", api.UpdateHashValue)
+	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/hashes/{key}/values", api.AddHashValue)
+	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/hashes/{key}/values/{hashKey}", api.UpdateHashValue)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/hashes/{key}/values/{hashKey}/delete", api.DeleteHashValue)
 
-	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/sets/{key}/values/add", api.AddSetValue)
-	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/sets/{key}/values/update", api.UpdateSetValue)
+	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/sets/{key}/values", api.AddSetValue)
+	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/sets/{key}/values/{value}", api.UpdateSetValue)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/sets/{key}/values/{value}/delete", api.DeleteSetValue)
 
-	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/zsets/{key}/values/add", api.AddZSetValue)
-	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/zsets/{key}/values/update", api.UpdateZSetValue)
+	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/zsets/{key}/values", api.AddZSetValue)
+	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/zsets/{key}/values/{value}", api.UpdateZSetValue)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/zsets/{key}/values/{value}/delete", api.DeleteZSetValue)
 
 	server.ServeStatic()

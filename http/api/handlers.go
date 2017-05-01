@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
@@ -279,14 +280,29 @@ func DeleteKey(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	return "", nil
 }
 
+type addStringJSONRequest struct {
+	Value string
+}
+
 //AddStringValue adds a new string value
 func AddStringValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key", "value"}, r)
+	err := CheckRequiredParams([]string{"server", "key"}, r)
 	if err != nil {
 		return nil, responds.NewBadRequestError(err.Error())
 	}
 	serverName := GetParam("server", r)
 	keyName := GetParam("key", r)
+
+	decoder := json.NewDecoder(r.Body)
+	var bodyReq addStringJSONRequest
+	err = decoder.Decode(&bodyReq)
+	if err != nil {
+		logger.Errorf("error while parsing JSON: %v", err)
+		return nil, responds.NewBadRequestError("got invalid JSON")
+	}
+	if len(bodyReq.Value) == 0 {
+		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
+	}
 
 	ex, err := db.KeyExists(serverName, keyName)
 	if err != nil {
@@ -297,7 +313,7 @@ func AddStringValue(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		return nil, responds.NewConflictError(fmt.Sprintf("key %v already exists", keyName))
 	}
 
-	err = db.Set(serverName, keyName, GetParam("value", r))
+	err = db.Set(serverName, keyName, bodyReq.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -305,12 +321,24 @@ func AddStringValue(w http.ResponseWriter, r *http.Request) (interface{}, error)
 	return "", nil
 }
 
+type updateStringRequest struct {
+	Value string
+}
+
 //UpdateStringValue updates a string value
 func UpdateStringValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key", "value"}, r)
+	err := CheckRequiredParams([]string{"server", "key"}, r)
 	if err != nil {
-		return nil, responds.NewBadRequestError(err.Error())
+		return nil, err
 	}
+	decoder := json.NewDecoder(r.Body)
+	var JSONReq updateStringRequest
+	err = decoder.Decode(&JSONReq)
+	if err != nil {
+		logger.Errorf("error while parsing JSON: %v", err)
+		return nil, responds.NewBadRequestError("got invalid JSON")
+	}
+
 	serverName := GetParam("server", r)
 	keyName := GetParam("key", r)
 
@@ -322,8 +350,10 @@ func UpdateStringValue(w http.ResponseWriter, r *http.Request) (interface{}, err
 	if !ex {
 		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
 	}
-
-	err = db.Set(serverName, keyName, GetParam("value", r))
+	if len(JSONReq.Value) == 0 {
+		return nil, responds.NewBadRequestError("`Value` JSON param is missing")
+	}
+	err = db.Set(serverName, keyName, JSONReq.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -331,16 +361,36 @@ func UpdateStringValue(w http.ResponseWriter, r *http.Request) (interface{}, err
 	return "", nil
 }
 
+type addHashValueJSONRequest struct {
+	Key   string
+	Value string
+}
+
 //AddHashValue adds a new redis Hash value
 func AddHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key", "hashKey", "hashValue"}, r)
+	err := CheckRequiredParams([]string{"server", "key"}, r)
 	if err != nil {
 		return nil, responds.NewBadRequestError(err.Error())
 	}
 	serverName := GetParam("server", r)
 	keyName := GetParam("key", r)
-	hashKey := GetParam("hashKey", r)
-	hashValue := GetParam("hashValue", r)
+
+	decoder := json.NewDecoder(r.Body)
+	var bodyReq addHashValueJSONRequest
+	err = decoder.Decode(&bodyReq)
+	if err != nil {
+		logger.Errorf("error while parsing JSON: %v", err)
+		return nil, responds.NewBadRequestError("got invalid JSON")
+	}
+	if len(bodyReq.Key) == 0 {
+		return nil, responds.NewBadRequestError("JSON `Key` param is missing")
+	}
+	if len(bodyReq.Value) == 0 {
+		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
+	}
+
+	hashKey := bodyReq.Key
+	hashValue := bodyReq.Value
 
 	ex, err := db.HashKeyExists(serverName, keyName, hashKey)
 	if err != nil {
@@ -360,16 +410,31 @@ func AddHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	return "", nil
 }
 
+type updateHashValueJSONRequest struct {
+	Value string
+}
+
 //UpdateHashValue updates an exists hash value
 func UpdateHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key", "hashKey", "hashValue"}, r)
+	err := CheckRequiredParams([]string{"server", "key", "hashKey"}, r)
 	if err != nil {
 		return nil, responds.NewBadRequestError(err.Error())
 	}
 	serverName := GetParam("server", r)
 	keyName := GetParam("key", r)
 	hashKey := GetParam("hashKey", r)
-	hashValue := GetParam("hashValue", r)
+
+	decoder := json.NewDecoder(r.Body)
+	var bodyReq updateHashValueJSONRequest
+	err = decoder.Decode(&bodyReq)
+	if err != nil {
+		logger.Errorf("error while parsing JSON: %v", err)
+		return nil, responds.NewBadRequestError("got invalid JSON")
+	}
+	if len(bodyReq.Value) == 0 {
+		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
+	}
+	hashValue := bodyReq.Value
 
 	ex, err := db.HashKeyExists(serverName, keyName, hashKey)
 	if err != nil {
@@ -417,24 +482,30 @@ func DeleteHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 	return "", nil
 }
 
+type addToListJSONRequest struct {
+	Value string
+	Index int
+}
+
 //AddListValue adds a new List value
 func AddListValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key", "value", "position"}, r)
+	err := CheckRequiredParams([]string{"server", "key"}, r)
 	if err != nil {
 		return nil, err
 	}
 
-	positionParam := GetParam("position", r)
-	position, err := strconv.ParseInt(positionParam, 0, 0)
+	decoder := json.NewDecoder(r.Body)
+	var bodyReq addToListJSONRequest
+	err = decoder.Decode(&bodyReq)
 	if err != nil {
-		return nil, responds.NewBadRequestError("'position' should be int")
+		logger.Errorf("error while parsing JSON: %v", err)
+		return nil, responds.NewBadRequestError("got invalid JSON")
+	}
+	if len(bodyReq.Value) == 0 {
+		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
 
-	if position > math.MaxInt32 {
-		return nil, responds.NewBadRequestError("'position' is too large")
-	}
-
-	err = db.InsertToList(GetParam("server", r), GetParam("key", r), GetParam("value", r), int(position))
+	err = db.InsertToList(GetParam("server", r), GetParam("key", r), bodyReq.Value, bodyReq.Index)
 	if err != nil {
 		return nil, err
 	}
@@ -442,9 +513,13 @@ func AddListValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	return "", nil
 }
 
+type updateListValueJSONRequest struct {
+	Value string
+}
+
 //UpdateListValue updates a list value
 func UpdateListValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key", "index", "value"}, r)
+	err := CheckRequiredParams([]string{"server", "key", "index"}, r)
 	if err != nil {
 		return nil, err
 	}
@@ -460,7 +535,18 @@ func UpdateListValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 		return nil, responds.NewBadRequestError("'index' is too large")
 	}
 
-	err = db.UpdateListValue(GetParam("server", r), GetParam("key", r), int(index), GetParam("value", r))
+	decoder := json.NewDecoder(r.Body)
+	var bodyReq updateListValueJSONRequest
+	err = decoder.Decode(&bodyReq)
+	if err != nil {
+		logger.Errorf("error while parsing JSON: %v", err)
+		return nil, responds.NewBadRequestError("got invalid JSON")
+	}
+	if len(bodyReq.Value) == 0 {
+		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
+	}
+
+	err = db.UpdateListValue(GetParam("server", r), GetParam("key", r), int(index), bodyReq.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -494,14 +580,28 @@ func DeleteListValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 	return "", nil
 }
 
+type addSetValueJSONRequest struct {
+	Value string
+}
+
 //AddSetValue adds a new SET member
 func AddSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key", "value"}, r)
+	err := CheckRequiredParams([]string{"server", "key"}, r)
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.AddValueToSet(GetParam("server", r), GetParam("key", r), GetParam("value", r))
+	decoder := json.NewDecoder(r.Body)
+	var bodyReq addSetValueJSONRequest
+	err = decoder.Decode(&bodyReq)
+	if err != nil {
+		logger.Errorf("error while parsing JSON: %v", err)
+		return nil, responds.NewBadRequestError("got invalid JSON")
+	}
+	if len(bodyReq.Value) == 0 {
+		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
+	}
+	err = db.AddValueToSet(GetParam("server", r), GetParam("key", r), bodyReq.Value)
 	if err != nil {
 		return "", err
 	}
@@ -509,14 +609,29 @@ func AddSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	return "", err
 }
 
+type updateSetValueJSONRequest struct {
+	Value string
+}
+
 //UpdateSetValue updates a set member
 func UpdateSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key", "value", "newValue"}, r)
+	err := CheckRequiredParams([]string{"server", "key"}, r)
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.UpdateSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r), GetParam("newValue", r))
+	decoder := json.NewDecoder(r.Body)
+	var bodyReq updateSetValueJSONRequest
+	err = decoder.Decode(&bodyReq)
+	if err != nil {
+		logger.Errorf("error while parsing JSON: %v", err)
+		return nil, responds.NewBadRequestError("got invalid JSON")
+	}
+	if len(bodyReq.Value) == 0 {
+		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
+	}
+
+	err = db.UpdateSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r), bodyReq.Value)
 	if err != nil {
 		return "", err
 	}
@@ -539,19 +654,30 @@ func DeleteSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error)
 	return "", err
 }
 
+type addZSetValueJSONRequest struct {
+	Value string
+	Score int64
+}
+
 //AddZSetValue adds a new ZSET value
 func AddZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key", "value", "score"}, r)
+	err := CheckRequiredParams([]string{"server", "key"}, r)
 	if err != nil {
 		return nil, err
 	}
 
-	score, err := strconv.ParseInt(GetParam("score", r), 0, 0)
+	decoder := json.NewDecoder(r.Body)
+	var bodyReq addZSetValueJSONRequest
+	err = decoder.Decode(&bodyReq)
 	if err != nil {
-		return nil, responds.NewBadRequestError("'score' should be int")
+		logger.Errorf("error while parsing JSON: %v", err)
+		return nil, responds.NewBadRequestError("got invalid JSON")
+	}
+	if len(bodyReq.Value) == 0 {
+		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
 
-	err = db.AddZSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r), score)
+	err = db.AddZSetValue(GetParam("server", r), GetParam("key", r), bodyReq.Value, bodyReq.Score)
 	if err != nil {
 		return nil, err
 	}
@@ -559,19 +685,29 @@ func AddZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	return "", nil
 }
 
+type updateZSetValueJSONRequest struct {
+	Value string
+	Score int64
+}
+
 //UpdateZSetValue updates a ZSET value
 func UpdateZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key", "value", "score"}, r)
+	err := CheckRequiredParams([]string{"server", "key"}, r)
 	if err != nil {
 		return nil, err
 	}
 
-	score, err := strconv.ParseInt(GetParam("score", r), 0, 0)
+	decoder := json.NewDecoder(r.Body)
+	var bodyReq updateZSetValueJSONRequest
+	err = decoder.Decode(&bodyReq)
 	if err != nil {
-		return nil, responds.NewBadRequestError("'score' should be int")
+		logger.Errorf("error while parsing JSON: %v", err)
+		return nil, responds.NewBadRequestError("got invalid JSON")
 	}
-
-	err = db.UpdateZSetValueIfExists(GetParam("server", r), GetParam("key", r), GetParam("value", r), score)
+	if len(bodyReq.Value) == 0 {
+		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
+	}
+	err = db.UpdateZSetValueIfExists(GetParam("server", r), GetParam("key", r), bodyReq.Value, bodyReq.Score)
 	if err != nil {
 		return nil, err
 	}
