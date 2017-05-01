@@ -44,7 +44,7 @@ update msg model =
         (updatedModel, getKeysPage updatedModel)
     KeyChosen key ->
       let
-        updatedModel = {model | chosenKey = Just key}
+        updatedModel = {model | chosenKey = Just key, editingValue = Nothing}
       in
         (updatedModel, getKeyValues updatedModel)
     UserConfirmation ->
