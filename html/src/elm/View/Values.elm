@@ -93,8 +93,8 @@ stringKeyValues model key value =
           i [class "fa fa-remove"] [],
           text " Delete"
       ],
-      button [class "btn btn-sm"] [
-          i [class "fa fa-edit", onClick <| ValueToEditSelected (value, value)] [],
+      button [class "btn btn-sm", onClick <| ValueToEditSelected (value, value)] [
+          i [class "fa fa-edit"] [],
           text " Edit"
       ]
     ],
@@ -116,8 +116,12 @@ drawValueOrEditField model value =
            textarea [class "form-control", onInput EditedValueChanged] [text model.editingValueToSave]
         ],
         div [class "col-md-2"] [
-           button [class "btn btn-sm btn-primary btn-block"] [i [class "fa fa-save", onClick <| ValueUpdateInitialized value] []],
-           button [class "btn btn-sm btn-default btn-block", onClick ValueEditingCanceled] [i [class "fa fa-times"] []]           
+           button [class "btn btn-sm btn-primary btn-block", onClick <| ValueUpdateInitialized value] [
+             i [class "fa fa-save"] []
+           ],
+           button [class "btn btn-sm btn-default btn-block", onClick ValueEditingCanceled] [
+             i [class "fa fa-times"] []
+           ]           
         ]
       ]
 
@@ -154,8 +158,12 @@ drawHashValueRow model hashKey hashValue =
             text hashValue
          ],
          td [] [
-           button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil", onClick <| ValueToEditSelected (hashKey, hashValue)] []],
-           button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm hashKey)] []]
+           button [class "btn btn-sm btn-edit", onClick <| ValueToEditSelected (hashKey, hashValue)] [
+             i [class "fa fa-pencil"] []
+           ],
+           button [class "btn btn-sm btn-danger", onClick (ValueDeletionConfirm hashKey)] [
+             i [class "fa fa-remove"] []
+           ]
          ]
     ]
 
@@ -213,8 +221,12 @@ drawListValueRow  model listMember =
             text listMember.value
         ],
         td [] [
-            button [class "btn btn-sm", onClick <| ValueToEditSelected (toString listMember.index, listMember.value)] [i [class "fa fa-pencil"] []],
-            button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm <| toString listMember.index)] []]
+            button [class "btn btn-sm", onClick <| ValueToEditSelected (toString listMember.index, listMember.value)] [
+              i [class "fa fa-pencil"] []
+            ],
+            button [class "btn btn-sm btn-danger", onClick (ValueDeletionConfirm <| toString listMember.index)] [
+              i [class "fa fa-remove"] []
+            ]
         ]
     ]
 
@@ -228,11 +240,11 @@ drawListValueEditFields model listMember =
         input [class "form-control", onInput EditedValueChanged, Html.Attributes.value model.editingValueToSave] []
       ],
       td [] [
-        button [class "btn btn-sm btn-primary"] [
-          i [class "fa fa-save", onClick <| ValueUpdateInitialized (toString listMember.index)] []
+        button [class "btn btn-sm btn-primary", onClick <| ValueUpdateInitialized (toString listMember.index)] [
+          i [class "fa fa-save"] []
         ],
-        button [class "btn btn-sm btn-default"] [
-          i [class "fa fa-times", onClick ValueEditingCanceled] []
+        button [class "btn btn-sm btn-default", onClick ValueEditingCanceled] [
+          i [class "fa fa-times"] []
         ]
       ]
   ]
@@ -271,7 +283,7 @@ drawSetValueRow model value =
           ],
         td [] [
             button [class "btn btn-sm", onClick <| ValueToEditSelected (value, value)] [i [class "fa fa-pencil"] []],
-            button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm value)] []]
+            button [class "btn btn-sm btn-danger", onClick (ValueDeletionConfirm value)] [i [class "fa fa-remove"] []]
         ]
     ]
 
@@ -282,8 +294,12 @@ drawSetEditFieldsRow model value =
         input [class "form-control", onInput EditedValueChanged, Html.Attributes.value model.editingValueToSave] []
       ],
       td [] [
-        button [class "btn btn-sm btn-primary", onClick <| ValueUpdateInitialized value] [i [class "fa fa-save"] []],
-        button [class "btn btn-sm btn-default", onClick ValueEditingCanceled] [i [class "fa fa-times"] []]        
+        button [class "btn btn-sm btn-primary", onClick <| ValueUpdateInitialized value] [
+          i [class "fa fa-save"] []
+        ],
+        button [class "btn btn-sm btn-default", onClick ValueEditingCanceled] [
+          i [class "fa fa-times"] []
+        ]        
       ]
     ]
 
@@ -321,8 +337,12 @@ drawSortedSetValueRow model value =
             text value.value
         ],
         td [] [
-            button [class "btn btn-sm btn-edit", onClick <| ZSetValueToEditSelected (value.value, value.value, value.score)] [i [class "fa fa-pencil"] []],
-            button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm value.value)] []]
+            button [class "btn btn-sm btn-edit", onClick <| ZSetValueToEditSelected (value.value, value.value, value.score)] [
+              i [class "fa fa-pencil"] []
+            ],
+            button [class "btn btn-sm btn-danger", onClick (ValueDeletionConfirm value.value)] [
+              i [class "fa fa-remove"] []
+            ]
         ]
     ]
 
