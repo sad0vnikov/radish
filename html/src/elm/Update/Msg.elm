@@ -20,8 +20,8 @@ type Msg = NoOp
   | ValueDeleted (Result Http.Error String)
   | UserConfirmation
   | UserConfirmationCancel
-  | ValueToEditSelected String
+  | ValueToEditSelected (String, StringRedisValue)
   | ValueEditingCanceled
   | EditedValueChanged String
-  | ValueUpdateInitialized StringRedisValue 
+  | ValueUpdateInitialized StringRedisValue
   | ValueUpdated (Result Http.Error ())

@@ -47,22 +47,26 @@ updateValue model value newValue =
     case getChosenServerAndKey model of
         Just (chosenServer,chosenKey) ->
             let
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys" ++ valueEditUrlPath chosenKey (getLoadedKeyType model.loadedValues) value
+                keyType = getLoadedKeyType model.loadedValues
+                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys" ++ valueEditUrlPath chosenKey keyType value
             in
-                Http.send ValueUpdated (put url (Http.jsonBody <| valueEditJsonRequest model chosenKey))
+                Http.send ValueUpdated (put url (Http.jsonBody <| valueEditJsonRequest model keyType))
         Nothing ->
             Cmd.none
 
-valueEditJsonRequest : Model -> RedisKey -> Encode.Value
-valueEditJsonRequest model redisKey =
-    (Encode.object [("Value", Encode.string model.editingValueToSave)])
+valueEditJsonRequest : Model -> KeyType -> Encode.Value
+valueEditJsonRequest model keyType =
+    case keyType of
+        StringRedisKey -> (Encode.object [("Value", Encode.string model.editingValueToSave)])
+        HashRedisKey -> (Encode.object [("Value", Encode.string model.editingValueToSave)])
+        _ -> (Encode.object [])
 
 
 valueEditUrlPath : RedisKey -> KeyType -> String  -> String
 valueEditUrlPath chosenKey keyType value  =
     case keyType of
         StringRedisKey -> "/strings/" ++ chosenKey
-        HashRedisKey -> "/hashes/" ++ chosenKey ++ "/values/" ++ value ++ "/update"
+        HashRedisKey -> "/hashes/" ++ chosenKey ++ "/values/" ++ value
         SetRedisKey -> "/sets/" ++ chosenKey ++ "/values/" ++ value ++ "/update"
         ZSetRedisKey -> "/zsets/" ++ chosenKey ++ "/values/" ++ value ++ "/update"
         ListRedisKey -> "/lists/" ++ chosenKey ++ "/values/" ++ value ++ "/update"

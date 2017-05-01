@@ -80,9 +80,9 @@ update msg model =
       (model, getKeyValues model) 
     ValueDeleted (Err err) ->
       (model, Toastr.toastError <| "Got error while deleting value: " ++ (httpErrorToString err))
-    ValueToEditSelected value ->
+    ValueToEditSelected (valueReference, currentValue) ->
       case model.chosenKey of
-        Just key -> ({model | editingValue = Just (key, value), editingValueToSave = value}, Cmd.none)
+        Just key -> ({model | editingValue = Just (key, valueReference), editingValueToSave = currentValue}, Cmd.none)
         Nothing -> (model, Cmd.none)
     EditedValueChanged value ->
       ({model | editingValueToSave = value}, Cmd.none)

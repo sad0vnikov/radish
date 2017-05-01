@@ -65,15 +65,15 @@ drawKeyType loadedValues =
 drawKeyValuesEditorByType : String -> Model -> Html Msg
 drawKeyValuesEditorByType key model = 
     case model.loadedValues of
-        MultipleRedisValues values -> drawMultipleRedisValues key values
+        MultipleRedisValues values -> drawMultipleRedisValues model key values
         SingleRedisValue value ->  drawSingleRedisValue model key value
 
 
-drawMultipleRedisValues : String -> RedisValuesPage -> Html Msg
-drawMultipleRedisValues key redisValuesPage =
+drawMultipleRedisValues : Model -> String -> RedisValuesPage -> Html Msg
+drawMultipleRedisValues model key redisValuesPage =
     case redisValuesPage.values of
         ListRedisValues values -> listKeyValues values
-        HashRedisValues values -> hashKeyValues values
+        HashRedisValues values -> hashKeyValues model values
         SetRedisValues values -> setKeyValues values
         ZSetRedisValues values -> sortedSetValues values
         _ ->
@@ -94,7 +94,7 @@ stringKeyValues model key value =
           text " Delete"
       ],
       button [class "btn btn-sm"] [
-          i [class "fa fa-edit", onClick <| ValueToEditSelected value] [],
+          i [class "fa fa-edit", onClick <| ValueToEditSelected (value, value)] [],
           text " Edit"
       ]
     ],
@@ -121,8 +121,8 @@ drawValueOrEditField model value =
         ]
       ]
 
-hashKeyValues : (Dict String StringRedisValue) -> Html Msg
-hashKeyValues values = 
+hashKeyValues : Model -> (Dict String StringRedisValue) -> Html Msg
+hashKeyValues model values = 
  div [] [
    table [class "table"] [
      thead [] [
@@ -130,24 +130,54 @@ hashKeyValues values =
        th [] [text "value"],
        th [] []
      ],
-     tbody [] <| Dict.values <| Dict.map drawHashValueRow values
+     tbody [] <| Dict.values <| Dict.map (drawHashValueOrEditFields model) values
    ]
  ]
 
-drawHashValueRow : String -> StringRedisValue -> Html Msg
-drawHashValueRow key value = 
+drawHashValueOrEditFields : Model -> String -> StringRedisValue -> Html Msg
+drawHashValueOrEditFields model hashKey hashValue =
+  case model.editingValue of
+    Nothing -> drawHashValueRow model hashKey hashValue
+    Just (key, valueToEdit) -> 
+      if valueToEdit == hashKey then
+        drawHashValueEditFields model hashKey hashValue
+      else
+        drawHashValueRow model hashKey hashValue
+
+drawHashValueRow : Model -> String -> StringRedisValue -> Html Msg
+drawHashValueRow model hashKey hashValue = 
     tr [] [
          td [] [
-            text key
+            text hashKey
          ], 
          td [] [
-            text value
+            text hashValue
          ],
          td [] [
-           button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil"] []],
-           button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm key)] []]
+           button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil", onClick <| ValueToEditSelected (hashKey, hashValue)] []],
+           button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm hashKey)] []]
          ]
     ]
+
+drawHashValueEditFields : Model -> String -> StringRedisValue -> Html Msg
+drawHashValueEditFields model hashKey hashValue =
+  tr [] [
+    td [] [
+      text hashKey
+    ],
+    td [] [
+      input [class "form-control", Html.Attributes.value model.editingValueToSave, onInput EditedValueChanged] []
+    ],
+    td [] [
+      button [class "btn btn-sm btn-primary", onClick <| ValueUpdateInitialized hashKey] [
+        i [class "fa fa-save"] []
+      ],
+      button [class "btn btn-sm btn-default", onClick ValueEditingCanceled] [
+        i [class "fa fa-times"] []
+      ]
+    ]
+  ]
+
 
 listKeyValues : (List ListRedisValue) -> Html Msg
 listKeyValues values = 
