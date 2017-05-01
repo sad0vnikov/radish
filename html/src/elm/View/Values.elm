@@ -74,8 +74,8 @@ drawMultipleRedisValues model key redisValuesPage =
     case redisValuesPage.values of
         ListRedisValues values -> listKeyValues model values
         HashRedisValues values -> hashKeyValues model values
-        SetRedisValues values -> setKeyValues values
-        ZSetRedisValues values -> sortedSetValues values
+        SetRedisValues values -> setKeyValues model values
+        ZSetRedisValues values -> sortedSetValues model values
         _ ->
             div [] []
 
@@ -237,8 +237,8 @@ drawListValueEditFields model listMember =
       ]
   ]
 
-setKeyValues : (List StringRedisValue) -> Html Msg
-setKeyValues values = 
+setKeyValues : Model -> (List StringRedisValue) -> Html Msg
+setKeyValues model values = 
   div [] [
     table [class "table"] [
       thead [] [
@@ -246,26 +246,49 @@ setKeyValues values =
         th [] [text "value"],
         th [] []
       ],
-      tbody [] <| List.map drawSetValueRow values
+      tbody [] <| List.map (drawSetValueRowOrEditFields model) values
     ]
   ]
 
-drawSetValueRow : StringRedisValue -> Html Msg
-drawSetValueRow value =
+drawSetValueRowOrEditFields : Model -> StringRedisValue -> Html Msg
+drawSetValueRowOrEditFields model value =
+  case model.editingValue of
+    Just (key, valueReference) ->
+      if valueReference == value then
+        drawSetEditFieldsRow model value
+      else
+        drawSetValueRow model value
+
+    Nothing ->
+      drawSetValueRow model value
+
+
+drawSetValueRow : Model -> StringRedisValue -> Html Msg
+drawSetValueRow model value =
     tr [] [
         td [] [
             text value
           ],
         td [] [
-            button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil"] []],
+            button [class "btn btn-sm", onClick <| ValueToEditSelected (value, value)] [i [class "fa fa-pencil"] []],
             button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm value)] []]
         ]
     ]
 
+drawSetEditFieldsRow : Model -> StringRedisValue -> Html Msg
+drawSetEditFieldsRow model value =
+    tr [] [
+      td [] [
+        input [class "form-control", onInput EditedValueChanged, Html.Attributes.value model.editingValueToSave] []
+      ],
+      td [] [
+        button [class "btn btn-sm btn-primary", onClick <| ValueUpdateInitialized value] [i [class "fa fa-save"] []],
+        button [class "btn btn-sm btn-default", onClick ValueEditingCanceled] [i [class "fa fa-times"] []]        
+      ]
+    ]
 
-
-sortedSetValues: (List ZSetRedisValue) -> Html Msg
-sortedSetValues values = 
+sortedSetValues: Model -> (List ZSetRedisValue) -> Html Msg
+sortedSetValues model values = 
   div [] [
     table [class "table"] [
       thead [] [
@@ -273,12 +296,23 @@ sortedSetValues values =
         th [] [text "value"],
         th [] []
       ],
-      tbody [] <| List.map drawSortedSetValueRow values
+      tbody [] <| List.map (drawSortedSetValueRowOrEditFields model) values
     ]
   ]
 
-drawSortedSetValueRow : ZSetRedisValue -> Html Msg
-drawSortedSetValueRow value =
+drawSortedSetValueRowOrEditFields : Model -> ZSetRedisValue -> Html Msg
+drawSortedSetValueRowOrEditFields model value = 
+  case model.editingValue of
+    Just (key, valueReference) ->
+      if valueReference == value.value then
+        drawSortedSetEditFields model value
+      else
+        drawSortedSetValueRow model value
+    Nothing ->
+      drawSortedSetValueRow model value
+
+drawSortedSetValueRow : Model -> ZSetRedisValue -> Html Msg
+drawSortedSetValueRow model value =
      tr [] [
         td [] [
             text <| toString value.score
@@ -287,7 +321,26 @@ drawSortedSetValueRow value =
             text value.value
         ],
         td [] [
-            button [class "btn btn-sm btn-edit"] [i [class "fa fa-pencil"] []],
+            button [class "btn btn-sm btn-edit", onClick <| ZSetValueToEditSelected (value.value, value.value, value.score)] [i [class "fa fa-pencil"] []],
             button [class "btn btn-sm btn-danger"] [i [class "fa fa-remove", onClick (ValueDeletionConfirm value.value)] []]
         ]
+    ]
+
+drawSortedSetEditFields : Model -> ZSetRedisValue -> Html Msg
+drawSortedSetEditFields model value =
+    tr [] [
+      td [] [
+          input [class "form-control", Html.Attributes.value <| toString model.editingScoreToSave, onInput EditedScoreChanged] []
+      ],
+      td [] [
+          input [class "form-control", Html.Attributes.value model.editingValueToSave, onInput EditedValueChanged] []          
+      ],
+      td [] [
+          button [class "btn btn-sm btn-primary", onClick <| ValueUpdateInitialized value.value] [
+            i [class "fa fa-save"] []
+          ],
+          button [class "btn btn-sm btn-default", onClick ValueEditingCanceled] [
+            i [class "fa fa-times"] []
+          ]
+      ]
     ]

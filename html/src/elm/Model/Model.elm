@@ -22,7 +22,8 @@ type alias Model = {
 
   waitingForConfirmation: Maybe UserConfirmation,
   editingValue: Maybe (RedisKey, String),
-  editingValueToSave: String
+  editingValueToSave: String,
+  editingScoreToSave: Int
 }
 
 
@@ -92,7 +93,8 @@ initModel flags =
     error = Maybe.Nothing,
     waitingForConfirmation = Nothing,
     editingValue = Nothing,
-    editingValueToSave = ""
+    editingValueToSave = "",
+    editingScoreToSave = 0
   }
 
 getLoadedKeyType : LoadedValues -> KeyType

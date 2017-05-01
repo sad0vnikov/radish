@@ -84,8 +84,22 @@ update msg model =
       case model.chosenKey of
         Just key -> ({model | editingValue = Just (key, valueReference), editingValueToSave = currentValue}, Cmd.none)
         Nothing -> (model, Cmd.none)
+    ZSetValueToEditSelected (valueReference, currentValue, currentScore) ->
+      let 
+        modelWithScore = {model | editingScoreToSave = currentScore}
+      in
+        update (ValueToEditSelected (valueReference, currentValue)) modelWithScore
+
     EditedValueChanged value ->
       ({model | editingValueToSave = value}, Cmd.none)
+    EditedScoreChanged score ->
+      let 
+        convertedScore = String.toInt score
+      in
+        case convertedScore of
+          Ok score -> ({model | editingScoreToSave = score}, Cmd.none)
+          Err _ -> (model, Toastr.toastError "Score should be number")
+       
     ValueEditingCanceled ->
       ({model | editingValue = Nothing}, Cmd.none)
     ValueUpdateInitialized value ->

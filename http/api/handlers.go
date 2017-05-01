@@ -692,7 +692,7 @@ type updateZSetValueJSONRequest struct {
 
 //UpdateZSetValue updates a ZSET value
 func UpdateZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	err := CheckRequiredParams([]string{"server", "key"}, r)
+	err := CheckRequiredParams([]string{"server", "key", "value"}, r)
 	if err != nil {
 		return nil, err
 	}
@@ -707,7 +707,7 @@ func UpdateZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 	if len(bodyReq.Value) == 0 {
 		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
-	err = db.UpdateZSetValueIfExists(GetParam("server", r), GetParam("key", r), bodyReq.Value, bodyReq.Score)
+	err = db.UpdateZSetValueIfExists(GetParam("server", r), GetParam("key", r), GetParam("value", r), bodyReq.Value, bodyReq.Score)
 	if err != nil {
 		return nil, err
 	}

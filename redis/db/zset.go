@@ -95,13 +95,14 @@ func AddZSetValue(serverName, key, value string, score int64) error {
 }
 
 //UpdateZSetValueIfExists updates a ZSet value if it exists
-func UpdateZSetValueIfExists(serverName, key, value string, score int64) error {
-	conn, err := connector.GetByName(serverName)
+func UpdateZSetValueIfExists(serverName, key, oldValue, value string, score int64) error {
+	err := DeleteZSetValue(serverName, key, oldValue)
 	if err != nil {
+		logger.Error(err)
 		return err
 	}
 
-	_, err = conn.Do("ZADD", key, "XX", score, value)
+	err = AddZSetValue(serverName, key, value, score)
 	if err != nil {
 		logger.Error(err)
 		return err
