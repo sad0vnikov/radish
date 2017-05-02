@@ -1,6 +1,18 @@
-module Command.Http.Requests exposing (put, delete)
+module Command.Http.Requests exposing (put, delete, post)
 
 import Http
+
+post : String -> Http.Body -> Http.Request ()
+post url body = 
+    Http.request
+    { method = "POST"
+        , headers = []
+        , url = url
+        , body = body
+        , expect = Http.expectStringResponse (\_ -> Ok ())
+        , timeout = Nothing
+        , withCredentials = False
+    }
 
 put : String -> Http.Body -> Http.Request ()
 put url body = 

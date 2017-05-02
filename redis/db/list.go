@@ -65,10 +65,10 @@ func (key ListKey) Values(pageNum, pageSize int) (interface{}, error) {
 	return values, nil
 }
 
-//InsertToList inserts a value at the given position
+//InsertToListWithPos inserts a value at the given position
 //If there are values after the given index, they are moved to the right
 //If position greater then the last list index, the value will be added to the and of the list
-func InsertToList(serverName, key, listValue string, position int) error {
+func InsertToListWithPos(serverName, key, listValue string, position int) error {
 	conn, err := connector.GetByName(serverName)
 	if err != nil {
 		return err
@@ -87,6 +87,22 @@ func InsertToList(serverName, key, listValue string, position int) error {
 		_, err = conn.Do("RPUSH", key, listValue)
 	}
 
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+//AppendToList appends a value to the end of list
+func AppendToList(serverName, key, listValue string) error {
+	conn, err := connector.GetByName(serverName)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Do("RPUSH", key, listValue)
 	if err != nil {
 		logger.Error(err)
 		return err

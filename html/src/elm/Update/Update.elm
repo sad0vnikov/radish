@@ -44,7 +44,7 @@ update msg model =
         (updatedModel, getKeysPage updatedModel)
     KeyChosen key ->
       let
-        updatedModel = {model | chosenKey = Just key, editingValue = Nothing}
+        updatedModel = {model | chosenKey = Just key, editingValue = Nothing, isAddingValue = False}
       in
         (updatedModel, getKeyValues updatedModel)
     UserConfirmation ->
@@ -110,6 +110,25 @@ update msg model =
       ({model | editingValue = Nothing}, getKeyValues model)
     ValueUpdated (Err err) ->
       (model, Toastr.toastError <| "Error while updating value: " ++ (httpErrorToString err))
+
+    AddingValueStart ->
+      ({model | isAddingValue = True, addingValue = "", addingHashKey = ""}, Cmd.none)
+    AddingValueCancel ->
+      ({model | isAddingValue = False, addingValue = "", addingHashKey = ""}, Cmd.none)
+    AddingValueChanged value ->
+      ({model | addingValue = value}, Cmd.none)
+    AddingHashKeyChanged value ->
+      ({model | addingHashKey = value}, Cmd.none)
+    AddingZSetScoreChanged stringValue ->
+      case String.toInt stringValue of
+        Ok value -> ({model | addingZSetScore = value}, Cmd.none)
+        Err _ -> (model, Cmd.none)
+    AddingValueInitialized ->
+      (model, addValue model)
+    ValueAdded (Ok response) ->
+      ({model | isAddingValue = False}, getKeyValues model)
+    ValueAdded (Err err) ->
+      (model, Toastr.toastError <| "Error while adding value: " ++ (httpErrorToString err))
     _ ->
       (model, Cmd.none)
 

@@ -27,3 +27,10 @@ type Msg = NoOp
   | EditedScoreChanged String
   | ValueUpdateInitialized StringRedisValue
   | ValueUpdated (Result Http.Error ())
+  | AddingValueStart
+  | AddingValueCancel
+  | AddingValueChanged String
+  | AddingHashKeyChanged String
+  | AddingZSetScoreChanged String
+  | AddingValueInitialized
+  | ValueAdded (Result Http.Error ())

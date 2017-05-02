@@ -1,13 +1,13 @@
-module Command.Values exposing (getKeyValues, deleteValue, updateValue )
+module Command.Values exposing (getKeyValues, deleteValue, updateValue, addValue)
 
-import Update.Msg exposing (Msg(KeyValuesLoaded, ValueDeleted, ValueUpdated))
+import Update.Msg exposing (Msg(KeyValuesLoaded, ValueDeleted, ValueUpdated, ValueAdded))
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model.Model exposing (Model, LoadedKeys, LoadedValues, KeyType, RedisKey,
   LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), 
   StringRedisValue, ListRedisValue, ZSetRedisValue, getChosenServerAndKey, getLoadedKeyType)
 import Http
-import Command.Http.Requests exposing (put, delete)
+import Command.Http.Requests exposing (put, delete, post)
 import Maybe exposing (andThen)
 
 getKeyValues : Model -> Cmd Msg
@@ -41,6 +41,41 @@ valueDeleteUrlPath chosenKey keyType value =
         ZSetRedisKey -> "/zsets/" ++ chosenKey ++ "/values/" ++ value
         ListRedisKey -> "/lists/" ++ chosenKey ++ "/values/" ++ value
         UnknownRedisKey -> ""
+
+addValue : Model -> Cmd Msg
+addValue model =
+    case getChosenServerAndKey model of 
+        Just (chosenServer,chosenKey) ->
+            let
+                keyType = getLoadedKeyType model.loadedValues
+                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys" ++ valueAddUrlPath chosenKey keyType
+            in
+                Http.send ValueAdded (post url (Http.jsonBody <| valueAddJsonRequest model keyType))
+        Nothing ->
+            Cmd.none
+
+valueAddUrlPath : RedisKey -> KeyType -> String
+valueAddUrlPath chosenKey keyType =
+    case keyType of
+        ListRedisKey -> "/lists/" ++ chosenKey ++ "/values"
+        HashRedisKey -> "/hashes/" ++ chosenKey ++  "/values"
+        SetRedisKey -> "/sets/" ++ chosenKey ++ "/values"
+        ZSetRedisKey -> "/zsets/" ++ chosenKey ++ "/values"        
+        _ -> ""
+
+valueAddJsonRequest : Model -> KeyType -> Encode.Value
+valueAddJsonRequest model keyType =
+    case keyType of
+        HashRedisKey -> (Encode.object [
+                ("Value", Encode.string model.addingValue), 
+                ("Key", Encode.string model.addingHashKey)
+            ])
+        ZSetRedisKey -> (Encode.object [
+                ("Value", Encode.string model.addingValue),
+                ("Score", Encode.int model.addingZSetScore)
+            ])
+        _ -> (Encode.object [("Value", Encode.string model.addingValue)])
+
 
 updateValue : Model -> String -> String -> Cmd Msg
 updateValue model value newValue = 
@@ -138,4 +173,4 @@ decodeZSetValues =
     Decode.map ZSetRedisValues <| Decode.list <|
         Decode.map2 ZSetRedisValue
             (Decode.field "Score" Decode.int)
-            (Decode.field "Member" Decode.string) 
+            (Decode.field "Member" Decode.string)

@@ -23,7 +23,12 @@ type alias Model = {
   waitingForConfirmation: Maybe UserConfirmation,
   editingValue: Maybe (RedisKey, String),
   editingValueToSave: String,
-  editingScoreToSave: Int
+  editingScoreToSave: Int,
+
+  isAddingValue: Bool,
+  addingValue: String,
+  addingHashKey: String,
+  addingZSetScore: Int
 }
 
 
@@ -94,7 +99,12 @@ initModel flags =
     waitingForConfirmation = Nothing,
     editingValue = Nothing,
     editingValueToSave = "",
-    editingScoreToSave = 0
+    editingScoreToSave = 0,
+
+    isAddingValue = False,
+    addingValue = "",
+    addingHashKey = "",
+    addingZSetScore = 0
   }
 
 getLoadedKeyType : LoadedValues -> KeyType

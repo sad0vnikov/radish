@@ -484,7 +484,7 @@ func DeleteHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 
 type addToListJSONRequest struct {
 	Value string
-	Index int
+	Index *int
 }
 
 //AddListValue adds a new List value
@@ -505,7 +505,12 @@ func AddListValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
 
-	err = db.InsertToList(GetParam("server", r), GetParam("key", r), bodyReq.Value, bodyReq.Index)
+	if bodyReq.Index != nil {
+		err = db.InsertToListWithPos(GetParam("server", r), GetParam("key", r), bodyReq.Value, *bodyReq.Index)
+	} else {
+		err = db.AppendToList(GetParam("server", r), GetParam("key", r), bodyReq.Value)
+	}
+
 	if err != nil {
 		return nil, err
 	}

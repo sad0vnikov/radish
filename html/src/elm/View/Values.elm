@@ -134,7 +134,13 @@ hashKeyValues model values =
        th [] [text "value"],
        th [] []
      ],
-     tbody [] <| Dict.values <| Dict.map (drawHashValueOrEditFields model) values
+     tbody [] <| (Dict.values <| Dict.map (drawHashValueOrEditFields model) values) ++ (List.singleton <| maybeDrawHashValueAddFields model)
+   ],
+   div [] [
+     button [class "btn btn-sm btn-primary", onClick AddingValueStart] [
+       i [class "fa fa-plus"] [],
+       text " Add a new value"
+     ]
    ]
  ]
 
@@ -186,6 +192,31 @@ drawHashValueEditFields model hashKey hashValue =
     ]
   ]
 
+maybeDrawHashValueAddFields : Model -> Html Msg
+maybeDrawHashValueAddFields model =
+  if model.isAddingValue then
+    drawHashValueAddFields model
+  else
+    tr [] []
+
+drawHashValueAddFields : Model -> Html Msg
+drawHashValueAddFields model = 
+  tr [] [
+    td [] [
+      input [class "form-control", Html.Attributes.value model.addingHashKey, onInput AddingHashKeyChanged] []
+    ],
+    td [] [
+      input [class "form-control", Html.Attributes.value model.addingValue, onInput AddingValueChanged] []
+    ],
+    td [] [
+      button [class "btn btn-sm btn-primary", onClick AddingValueInitialized] [
+        i [class "fa fa-save"] []
+      ],
+      button [class "btn btn-sm btn-default", onClick AddingValueCancel] [
+        i [class "fa fa-times"] []
+      ]
+    ]
+  ]
 
 listKeyValues : Model -> (List ListRedisValue) -> Html Msg
 listKeyValues model values = 
@@ -196,7 +227,13 @@ listKeyValues model values =
         th [] [text "value"],
         th [] []
       ],
-      tbody [] <| List.map (drawListValueOrEditFields model) values
+      tbody [] <| (List.map (drawListValueOrEditFields model) values) ++ (List.singleton <| maybeDrawListValueAddFields model)
+    ],
+    div [] [
+      button [class "btn btn-sm btn-primary", onClick AddingValueStart] [
+        i [class "fa fa-plus"] [],
+        text " Add a new list member"
+      ]
     ]
   ]
 
@@ -249,6 +286,34 @@ drawListValueEditFields model listMember =
       ]
   ]
 
+maybeDrawListValueAddFields : Model -> Html Msg
+maybeDrawListValueAddFields model =
+  if model.isAddingValue then
+    drawListValueAddFields model
+  else 
+    tr [] []
+
+
+drawListValueAddFields : Model -> Html Msg
+drawListValueAddFields model = 
+    tr [] [
+      td [] [
+          
+        ],
+        td [] [
+          input [class "form-control", onInput AddingValueChanged, Html.Attributes.value model.addingValue] []
+        ],
+        td [] [
+          button [class "btn btn-sm btn-primary", onClick <| AddingValueInitialized] [
+            i [class "fa fa-save"] []
+          ],
+          button [class "btn btn-sm btn-default", onClick AddingValueCancel] [
+            i [class "fa fa-times"] []
+          ]
+        ]
+    ]
+  
+
 setKeyValues : Model -> (List StringRedisValue) -> Html Msg
 setKeyValues model values = 
   div [] [
@@ -258,7 +323,13 @@ setKeyValues model values =
         th [] [text "value"],
         th [] []
       ],
-      tbody [] <| List.map (drawSetValueRowOrEditFields model) values
+      tbody [] <| (List.map (drawSetValueRowOrEditFields model) values) ++ (List.singleton <| maybeDrawSetValueAddFields model)
+    ],
+    div [] [
+      button [class "btn btn-sm btn-primary", onClick AddingValueStart] [
+        i [class "fa fa-plus"] [],
+        text " Add a new set member"
+      ]
     ]
   ]
 
@@ -303,6 +374,29 @@ drawSetEditFieldsRow model value =
       ]
     ]
 
+maybeDrawSetValueAddFields : Model -> Html Msg
+maybeDrawSetValueAddFields model =
+  if model.isAddingValue then
+    drawSetValueAddFields model
+  else
+    tr [] []
+
+drawSetValueAddFields : Model -> Html Msg
+drawSetValueAddFields model =
+  tr [] [
+      td [] [
+        input [class "form-control", onInput AddingValueChanged, Html.Attributes.value model.addingValue] []
+      ],
+      td [] [
+        button [class "btn btn-sm btn-primary", onClick AddingValueInitialized] [
+          i [class "fa fa-save"] []
+        ],
+        button [class "btn btn-sm btn-default", onClick AddingValueCancel] [
+          i [class "fa fa-times"] []
+        ]        
+      ]
+    ]
+
 sortedSetValues: Model -> (List ZSetRedisValue) -> Html Msg
 sortedSetValues model values = 
   div [] [
@@ -312,7 +406,13 @@ sortedSetValues model values =
         th [] [text "value"],
         th [] []
       ],
-      tbody [] <| List.map (drawSortedSetValueRowOrEditFields model) values
+      tbody [] <| (List.map (drawSortedSetValueRowOrEditFields model) values) ++ (List.singleton <| maybeDrawSortedSetAddFields model)
+    ],
+    div [] [
+      button [class "btn btn-sm btn-primary", onClick AddingValueStart] [
+        i [class "fa fa-plus"] [],
+        text " Add a new member"
+      ]
     ]
   ]
 
@@ -364,3 +464,29 @@ drawSortedSetEditFields model value =
           ]
       ]
     ]
+
+maybeDrawSortedSetAddFields : Model -> Html Msg
+maybeDrawSortedSetAddFields model =
+  if model.isAddingValue then
+    drawSortedSetAddFields model
+  else
+    tr [] []
+
+drawSortedSetAddFields : Model -> Html Msg
+drawSortedSetAddFields model =
+  tr [] [
+      td [] [
+          input [class "form-control", Html.Attributes.value <| toString model.addingZSetScore, onInput AddingZSetScoreChanged] []
+      ],
+      td [] [
+          input [class "form-control", Html.Attributes.value model.addingValue, onInput AddingValueChanged] []          
+      ],
+      td [] [
+          button [class "btn btn-sm btn-primary", onClick <| AddingValueInitialized] [
+            i [class "fa fa-save"] []
+          ],
+          button [class "btn btn-sm btn-default", onClick AddingValueCancel] [
+            i [class "fa fa-times"] []
+          ]
+      ]
+  ]
