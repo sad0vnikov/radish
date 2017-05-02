@@ -9,7 +9,7 @@ var toastr = require( '../../node_modules/toastr/toastr.js')
 // inject bundled Elm app into div#main
 var Elm = require( '../elm/Main' );
 var app = Elm.Main.embed( document.getElementById( 'main' ), {
-    apiUrl: '/api/v1/'
+    apiUrl: '/api/v1'
 } );
 
 toastr.options.positionClass = "toast-bottom-right";
