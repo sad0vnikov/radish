@@ -38,3 +38,4 @@ type Msg = NoOp
   | CloseAddKeyModal
   | KeyToAddTypeChanged String
   | KeyToAddNameChanged String
+  | AddNewKey

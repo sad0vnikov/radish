@@ -1,5 +1,5 @@
 module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, 
-  LoadedValues(..), RedisValuesPage, RedisValue, availableKeyTypes, keyTypeName, KeyType(..), RedisValues(..), StringRedisValue, ListRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
+  LoadedValues(..), RedisValuesPage, RedisValue, availableKeyTypes, keyTypeName, keyTypeAlias, keyTypeFromAlias, KeyType(..), RedisValues(..), StringRedisValue, ListRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -75,6 +75,26 @@ keyTypeName keyType =
     ListRedisKey -> "List"
     _ -> "Unsupported key type"
 
+keyTypeAlias : KeyType -> String
+keyTypeAlias keyType =
+  case keyType of
+    HashRedisKey -> "hash"
+    StringRedisKey -> "string"
+    SetRedisKey -> "set"
+    ZSetRedisKey -> "zset"
+    ListRedisKey -> "list"
+    _ -> "unknown"
+
+keyTypeFromAlias : String -> KeyType
+keyTypeFromAlias slug =
+  case slug of
+    "hash" -> HashRedisKey
+    "string" -> StringRedisKey
+    "set" -> SetRedisKey
+    "zset" -> ZSetRedisKey
+    "list" -> ListRedisKey
+    _ -> UnknownRedisKey
+
 type RedisValues = StringRedisValue String 
   | ListRedisValues (List ListRedisValue )
   | HashRedisValues (Dict String StringRedisValue)
@@ -124,7 +144,7 @@ initModel flags =
     addingZSetScore = 0,
 
     addKeyModalShown = False,
-    keyToAddType = keyTypeName StringRedisKey,
+    keyToAddType = keyTypeAlias StringRedisKey,
     keyToAddName = ""
   }
 

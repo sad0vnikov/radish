@@ -124,9 +124,9 @@ update msg model =
         Ok value -> ({model | addingZSetScore = value}, Cmd.none)
         Err _ -> (model, Cmd.none)
     AddingValueInitialized ->
-      (model, addValue model)
+      (model, addValueForChosenKey model)
     ValueAdded (Ok response) ->
-      ({model | isAddingValue = False}, getKeyValues model)
+      ({model | isAddingValue = False, addKeyModalShown = False}, getKeyValues model)
     ValueAdded (Err err) ->
       (model, Toastr.toastError <| "Error while adding value: " ++ (httpErrorToString err))
     ShowAddKeyModal ->
@@ -137,6 +137,8 @@ update msg model =
       ({model | keyToAddType = keyType}, Cmd.none)      
     KeyToAddNameChanged keyName ->
       ({model | keyToAddName = keyName}, Cmd.none)   
+    AddNewKey ->
+      ({model | chosenKey = Just model.keyToAddName}, addKey model)
     _ ->
       (model, Cmd.none)
 

@@ -1,10 +1,11 @@
-module Command.Keys exposing (getKeysPage, deleteKey)
+module Command.Keys exposing (getKeysPage, deleteKey, addKey)
 
-import Model.Model exposing (Model, RedisKey, LoadedKeys)
+import Model.Model exposing (Model, RedisKey, LoadedKeys, keyTypeFromAlias)
 import Update.Msg exposing (Msg(..))
 import Http
 import Json.Decode as Decode
 import Command.Http.Requests exposing (delete)
+import Command.Values exposing (addValue)
 
 getKeysPage : Model -> Cmd Msg
 getKeysPage model =
@@ -28,6 +29,15 @@ sanitizeKeysMask mask =
 keysListDecoder : Decode.Decoder LoadedKeys
 keysListDecoder =
     Decode.map3 LoadedKeys (Decode.field "Keys" (Decode.list Decode.string)) (Decode.field "PagesCount" Decode.int) (Decode.field "Page" Decode.int)
+
+
+addKey : Model -> Cmd Msg
+addKey model =
+    case model.chosenServer of
+        Just serverName ->
+            addValue serverName model.keyToAddName (keyTypeFromAlias model.keyToAddType) {model | chosenKey = Just model.keyToAddName, addingValue = "0", addingHashKey = "0", addingZSetScore = 0}
+        Nothing ->
+            Cmd.none
 
 
 deleteKey : String -> Model -> Cmd Msg

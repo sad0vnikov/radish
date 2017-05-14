@@ -1,6 +1,6 @@
 module View.AddKeyModal exposing (view)
 
-import Model.Model exposing (Model, availableKeyTypes, keyTypeName, KeyType)
+import Model.Model exposing (Model, availableKeyTypes, keyTypeName, keyTypeAlias, KeyType)
 import Update.Msg exposing (Msg(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -30,7 +30,7 @@ view model =
                     ]
                 ),
                 footer = Just (
-                    button [class "btn btn-primary"] [text "Add key"]
+                    button [class "btn btn-primary", onClick AddNewKey] [text "Add key"]
                 )
             }
         else 
@@ -43,6 +43,6 @@ keyTypeOption model keyType =
     let 
         keyTypeStringName = keyTypeName keyType
     in
-        option [value <| toString keyType, selected (model.keyToAddType == keyTypeStringName)] [
+        option [value <| keyTypeAlias keyType, selected (model.keyToAddType == keyTypeStringName)] [
             text <| keyTypeStringName
         ]

@@ -1,4 +1,4 @@
-module Command.Values exposing (getKeyValues, deleteValue, updateValue, addValue)
+module Command.Values exposing (getKeyValues, deleteValue, updateValue, addValueForChosenKey, addValue)
 
 import Update.Msg exposing (Msg(KeyValuesLoaded, ValueDeleted, ValueUpdated, ValueAdded))
 import Json.Decode as Decode
@@ -42,17 +42,23 @@ valueDeleteUrlPath chosenKey keyType value =
         ListRedisKey -> "/lists/" ++ chosenKey ++ "/values/" ++ value
         UnknownRedisKey -> ""
 
-addValue : Model -> Cmd Msg
-addValue model =
+addValueForChosenKey : Model -> Cmd Msg
+addValueForChosenKey model =
     case getChosenServerAndKey model of 
         Just (chosenServer,chosenKey) ->
             let
                 keyType = getLoadedKeyType model.loadedValues
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys" ++ valueAddUrlPath chosenKey keyType
             in
-                Http.send ValueAdded (post url (Http.jsonBody <| valueAddJsonRequest model keyType))
+                addValue chosenServer chosenKey keyType model
         Nothing ->
             Cmd.none
+
+addValue : String -> RedisKey -> KeyType -> Model -> Cmd Msg
+addValue serverName keyName keyType model =
+    let 
+        url = model.api.url ++ "/servers/" ++ serverName ++ "/keys" ++ valueAddUrlPath keyName keyType
+    in
+        Http.send ValueAdded (post url (Http.jsonBody <| valueAddJsonRequest model keyType))
 
 valueAddUrlPath : RedisKey -> KeyType -> String
 valueAddUrlPath chosenKey keyType =
@@ -61,6 +67,7 @@ valueAddUrlPath chosenKey keyType =
         HashRedisKey -> "/hashes/" ++ chosenKey ++  "/values"
         SetRedisKey -> "/sets/" ++ chosenKey ++ "/values"
         ZSetRedisKey -> "/zsets/" ++ chosenKey ++ "/values"        
+        StringRedisKey -> "/strings/" ++ chosenKey
         _ -> ""
 
 valueAddJsonRequest : Model -> KeyType -> Encode.Value
