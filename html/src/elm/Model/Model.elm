@@ -1,5 +1,5 @@
 module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, 
-  LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), StringRedisValue, ListRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
+  LoadedValues(..), RedisValuesPage, RedisValue, availableKeyTypes, keyTypeName, KeyType(..), RedisValues(..), StringRedisValue, ListRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -28,7 +28,11 @@ type alias Model = {
   isAddingValue: Bool,
   addingValue: String,
   addingHashKey: String,
-  addingZSetScore: Int
+  addingZSetScore: Int,
+
+  addKeyModalShown: Bool,
+  keyToAddType: String,
+  keyToAddName: String
 }
 
 
@@ -57,6 +61,19 @@ type alias RedisValue = {
 }
 
 type KeyType = StringRedisKey | HashRedisKey | SetRedisKey | ZSetRedisKey | ListRedisKey | UnknownRedisKey
+
+availableKeyTypes : List KeyType
+availableKeyTypes = [StringRedisKey, HashRedisKey, SetRedisKey, ZSetRedisKey, ListRedisKey]
+
+keyTypeName : KeyType -> String
+keyTypeName keyType =
+  case keyType of
+    HashRedisKey -> "Hash"
+    StringRedisKey -> "String Key"
+    SetRedisKey -> "Set"
+    ZSetRedisKey -> "ZSet"
+    ListRedisKey -> "List"
+    _ -> "Unsupported key type"
 
 type RedisValues = StringRedisValue String 
   | ListRedisValues (List ListRedisValue )
@@ -104,7 +121,11 @@ initModel flags =
     isAddingValue = False,
     addingValue = "",
     addingHashKey = "",
-    addingZSetScore = 0
+    addingZSetScore = 0,
+
+    addKeyModalShown = False,
+    keyToAddType = keyTypeName StringRedisKey,
+    keyToAddName = ""
   }
 
 getLoadedKeyType : LoadedValues -> KeyType

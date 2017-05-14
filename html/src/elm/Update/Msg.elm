@@ -2,7 +2,7 @@ module Update.Msg exposing (Msg(..))
 
 import Http
 import Dict exposing (Dict)
-import Model.Model exposing (LoadedKeys, Server, RedisKey, RedisValue, StringRedisValue, LoadedValues)
+import Model.Model exposing (LoadedKeys, Server, RedisKey, RedisValue, StringRedisValue, LoadedValues, KeyType)
 
 type Msg = NoOp 
   | ChosenServer String 
@@ -34,3 +34,7 @@ type Msg = NoOp
   | AddingZSetScoreChanged String
   | AddingValueInitialized
   | ValueAdded (Result Http.Error ())
+  | ShowAddKeyModal
+  | CloseAddKeyModal
+  | KeyToAddTypeChanged String
+  | KeyToAddNameChanged String

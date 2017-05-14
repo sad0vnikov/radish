@@ -10,14 +10,15 @@ import List exposing (range)
 import Update.Msg exposing (Msg(..))
 import View.Pagination exposing (drawPager)
 import View.Values exposing (..)
+import View.AddKeyModal as AddKeyModal
 
 view : Model -> Html Msg
 view model =
   div [ class "container" ] [   
       navbar model,
-      maybeDrawWorkspace model
+      maybeDrawWorkspace model,
+      AddKeyModal.view model
   ]
-
 
 navbar : Model -> Html Msg
 navbar model = 
@@ -63,10 +64,14 @@ workspace model =
               
           ],
           div [class "panel-body"] [
-              Html.form [] [
-                div [class "input-group"] [
+              Html.form [class "form-inline"] [
+                div [class "input-group form-group"] [
                   input [type_ "text", class "form-control", placeholder "*", value model.keysMask, onInput KeysMaskChanged] [],
                   label [class "input-group-addon"] [i [class "fa fa-search"] []]
+                ], 
+                button [class "btn btn-success pull-right", onClick ShowAddKeyModal] [
+                    i [class "fa fa-plus-square"] [],
+                    text " Add key"
                 ]
               ],
               div [class "list-group"]

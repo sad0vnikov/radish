@@ -129,6 +129,14 @@ update msg model =
       ({model | isAddingValue = False}, getKeyValues model)
     ValueAdded (Err err) ->
       (model, Toastr.toastError <| "Error while adding value: " ++ (httpErrorToString err))
+    ShowAddKeyModal ->
+      ({model | addKeyModalShown = True}, Cmd.none)
+    CloseAddKeyModal ->
+      ({model | addKeyModalShown = False}, Cmd.none)
+    KeyToAddTypeChanged keyType ->
+      ({model | keyToAddType = keyType}, Cmd.none)      
+    KeyToAddNameChanged keyName ->
+      ({model | keyToAddName = keyName}, Cmd.none)   
     _ ->
       (model, Cmd.none)
 
