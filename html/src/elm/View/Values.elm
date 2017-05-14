@@ -46,7 +46,11 @@ keyEditor model chosenKey =
     div [class "page-header"] [
       h2 [] [
         text <| chosenKey ++ " ",
-        small [] [drawKeyType model.loadedValues]
+        small [] [drawKeyType model.loadedValues],
+        button [class "btn btn-sm btn-danger pull-right", onClick (KeyDeletionConfirm chosenKey)] [
+          i [class "fa fa-remove"] [],
+          text " Delete key"
+        ]
       ]   
     ],
     drawKeyValuesEditorByType chosenKey model
@@ -89,10 +93,6 @@ stringKeyValues : Model -> String -> StringRedisValue -> Html Msg
 stringKeyValues model key value =
   div [] [
     div [class "btn-toolbar"] [
-      button [class "btn btn-sm btn-danger", onClick (KeyDeletionConfirm key)] [
-          i [class "fa fa-remove"] [],
-          text " Delete"
-      ],
       button [class "btn btn-sm", onClick <| ValueToEditSelected (value, value)] [
           i [class "fa fa-edit"] [],
           text " Edit"
