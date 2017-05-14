@@ -1,0 +1,14 @@
+{
+    "Servers": [
+        {
+            "Name": "server1",
+            "Host": "127.0.0.1",
+            "Port": 32768
+        },
+        {
+            "Name": "server2",
+            "Host": "redis",
+            "Port": 6379
+        }
+    ]
+}
