@@ -11,6 +11,9 @@ var Elm = require( '../elm/Main' );
 
 var currentURI = window.location.href
 currentURI = currentURI.replace("index.html", "")
+currentURI = currentURI.replace("#", "")
+currentURI = currentURI.replace("?", "")
+
 if (currentURI.charAt(currentURI.length - 1) != "/") {
     currentURI += "/";
 } 
