@@ -3,8 +3,11 @@ package server
 import (
 	"net/http"
 
+	"strings"
+
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/sad0vnikov/radish/config"
 	"github.com/sad0vnikov/radish/http/responds"
 	"github.com/sad0vnikov/radish/logger"
 )
@@ -30,13 +33,15 @@ func (server HTTPServer) Init() {
 //ServeStatic turns on serving Radish panel static files
 func (server HTTPServer) ServeStatic() {
 	fs := http.FileServer(http.Dir("html/dist"))
-	router.PathPrefix("/").Handler(fs)
+	var URLPrefix = getURLPrefix()
+	router.PathPrefix(URLPrefix).Handler(http.StripPrefix(URLPrefix, fs))
 }
 
 //AddHandler adds a http handler
 func (server HTTPServer) AddHandler(method, path string, h apiHandler) {
+	var URLPrefix = getURLPrefix()
 	router.HandleFunc(
-		"/api/"+path,
+		URLPrefix+"api/"+path,
 		func(w http.ResponseWriter, r *http.Request) {
 			resp, err := h(w, r)
 			if _, ok := err.(*responds.APINotFoundError); ok {
@@ -64,4 +69,14 @@ func (server HTTPServer) AddHandler(method, path string, h apiHandler) {
 //GetURLParams returns request params from given HTTP request
 func GetURLParams(request *http.Request) map[string]string {
 	return mux.Vars(request)
+}
+
+func getURLPrefix() string {
+	var URLPrefix = config.Get().URLPrefix
+
+	if !strings.HasSuffix(URLPrefix, "/") {
+		URLPrefix = URLPrefix + "/"
+	}
+
+	return URLPrefix
 }

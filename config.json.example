@@ -10,5 +10,6 @@
             "Host": "redis",
             "Port": 6379
         }
-    ]
+    ],
+    "URLPrefix": "/" //you can assign a prefix for every URL request to Radish. i.e. '/api/v1/servers' can become '/radish/api/v1/servers'
 }

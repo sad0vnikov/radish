@@ -6,7 +6,8 @@ import (
 
 //Config is struct which stores configuration data
 type Config struct {
-	Servers map[string]redis.Server
+	Servers   map[string]redis.Server
+	URLPrefix string
 }
 
 //Loader is an interface for configuration loading logic

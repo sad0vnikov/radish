@@ -8,8 +8,14 @@ var toastr = require( '../../node_modules/toastr/toastr.js')
 
 // inject bundled Elm app into div#main
 var Elm = require( '../elm/Main' );
+
+var currentURI = window.location.href
+currentURI = currentURI.replace("index.html", "")
+if (currentURI.charAt(currentURI.length - 1) != "/") {
+    currentURI += "/";
+} 
 var app = Elm.Main.embed( document.getElementById( 'main' ), {
-    apiUrl: '/api/v1'
+    apiUrl: currentURI + 'api/v1'
 } );
 
 toastr.options.positionClass = "toast-bottom-right";

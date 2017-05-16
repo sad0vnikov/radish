@@ -15,7 +15,8 @@ type JSONFileConfigLoader struct {
 
 //JSONContents represents JSON file format
 type JSONContents struct {
-	Servers []redis.Server
+	Servers   []redis.Server
+	URLPrefix string
 }
 
 //Load config data from JSON file
@@ -48,6 +49,7 @@ func fillConfig(contents JSONContents) (Config, error) {
 		}
 		config.Servers[server.Name] = server
 	}
+	config.URLPrefix = contents.URLPrefix
 
 	return config, nil
 }
