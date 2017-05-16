@@ -77,10 +77,10 @@ workspace model =
               div [class "list-group"]
                 (List.map (\key ->
                   a [
-                    class ("list-group-item " ++ (if model.chosenKey == Just key then "active" else "")), 
+                    class ("list-group-item break-word " ++ (if model.chosenKey == Just key then "active" else "")), 
                     onClick (KeyChosen key)
                     ] [text key]
-                ) model.loadedKeys.keys)        
+                ) model.loadedKeys.keys)
           ], 
           div [class "panel-footer"] [
               drawPager model.loadedKeys.pagesCount model.loadedKeys.currentPage KeysPageChanged

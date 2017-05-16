@@ -44,7 +44,7 @@ keyEditor : Model -> String -> Html Msg
 keyEditor model chosenKey = 
   div [] [
     div [class "page-header"] [
-      h2 [] [
+      h2 [class "break-word"] [
         text <| chosenKey ++ " ",
         small [] [drawKeyType model.loadedValues],
         button [class "btn btn-sm btn-danger pull-right", onClick (KeyDeletionConfirm chosenKey)] [
