@@ -124,6 +124,48 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	return response, nil
 }
 
+//KeysSubtreeResponse is a
+type KeysSubtreeResponse struct {
+	Nodes     []db.KeyTreeNode
+	KeysCount int64
+}
+
+//GetKeysSubtree is a handler for getting Redis keys tree nodes
+func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	requestParams := server.GetURLParams(r)
+
+	serverName := requestParams["server"]
+	if len(serverName) == 0 {
+		return nil, responds.NewBadRequestError("'server' param is mandatory")
+	}
+
+	keyPrefix := requestParams["prefix"]
+	if len(keyPrefix) == 0 {
+		return nil, responds.NewBadRequestError("'prefix' param is mandatory")
+	}
+
+	offsetParam := requestParams["offset"]
+	offset, err := strconv.ParseInt(offsetParam, 0, 0)
+	if err != nil {
+		offset = 0
+	}
+
+	delimiter := ":"
+	var pageSize int32
+	pageSize = 100
+
+	node := db.KeyTreeNode{Name: keyPrefix, HasChildren: true}
+	nodes, keysCount, err := db.FindKeysTreeNodeChildren(serverName, delimiter, offset, pageSize, node)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	response := KeysSubtreeResponse{Nodes: nodes, KeysCount: keysCount}
+
+	return response, nil
+}
+
 type singleValueResponse struct {
 	KeyType string
 	Value   string

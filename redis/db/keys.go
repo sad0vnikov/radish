@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/sad0vnikov/radish/logger"
@@ -37,6 +38,12 @@ type Key interface {
 	KeyType() string
 }
 
+//KeyTreeNode is a node of keys tree
+type KeyTreeNode struct {
+	Name        string
+	HasChildren bool
+}
+
 var connector Connections
 
 func init() {
@@ -59,6 +66,67 @@ func FindKeysByMask(serverName, mask string) ([]string, error) {
 
 	return redis.Strings(result, err)
 
+}
+
+//FindKeysTreeNodeChildren returns the first generation of children for given keys tree node
+func FindKeysTreeNodeChildren(serverName, delimiter string, offset int64, pageSize int32, node KeyTreeNode) ([]KeyTreeNode, int64, error) {
+	var maskForSearch = node.Name
+	if maskForSearch != "*" {
+		maskForSearch = maskForSearch + delimiter + "*"
+	}
+
+	conn, err := connector.GetByName(serverName)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	r, err := redis.MultiBulk(conn.Do("SCAN", offset, "MATCH", maskForSearch, "COUNT", pageSize))
+	if err != nil {
+		return nil, 0, err
+	}
+
+	cnt, _ := redis.Int64(r[0], nil)
+	keys, _ := redis.Strings(r[1], nil)
+
+	return getChildrenFromKeys(keys, maskForSearch, delimiter), cnt, nil
+}
+
+func getChildrenFromKeys(keys []string, maskForSearch, delimiter string) []KeyTreeNode {
+	var childKeysMap = make(map[string]KeyTreeNode)
+
+	var keyPrefix = ""
+	if maskForSearch != "*" {
+		keyPrefix = strings.TrimSuffix(maskForSearch, "*")
+	}
+
+	for _, key := range keys {
+		key = strings.TrimPrefix(key, keyPrefix)
+		sepIndex := strings.Index(key, delimiter)
+		hasChildren := false
+		if sepIndex != -1 {
+			hasChildren = true
+			key = strings.Split(key, delimiter)[0]
+		}
+
+		mapKey := key
+		if hasChildren {
+			mapKey += delimiter
+		}
+
+		if _, prs := childKeysMap[mapKey]; prs == false {
+			childKeysMap[mapKey] = KeyTreeNode{Name: key, HasChildren: hasChildren}
+		}
+	}
+
+	childKeys := make([]KeyTreeNode, len(childKeysMap))
+	i := 0
+	for _, k := range childKeysMap {
+		childKeys[i] = k
+		i++
+	}
+
+	return childKeys
 }
 
 //KeyExists returns True if given Redis key exists
