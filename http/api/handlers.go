@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/sad0vnikov/radish/config"
 	"github.com/sad0vnikov/radish/http/responds"
@@ -127,7 +128,7 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 //KeysSubtreeResponse is a
 type KeysSubtreeResponse struct {
 	Nodes     []db.KeyTreeNode
-	KeyPrefix string
+	Path      []string
 	KeysCount int64
 }
 
@@ -161,8 +162,11 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		logger.Error(err)
 		return nil, err
 	}
-
-	response := KeysSubtreeResponse{Nodes: nodes, KeysCount: keysCount, KeyPrefix: keyPrefix}
+	path := []string{}
+	if keyPrefix != "*" {
+		path = strings.Split(keyPrefix, delimiter)
+	}
+	response := KeysSubtreeResponse{Nodes: nodes, KeysCount: keysCount, Path: path}
 
 	return response, nil
 }
