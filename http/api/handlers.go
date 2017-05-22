@@ -127,6 +127,7 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 //KeysSubtreeResponse is a
 type KeysSubtreeResponse struct {
 	Nodes     []db.KeyTreeNode
+	KeyPrefix string
 	KeysCount int64
 }
 
@@ -161,7 +162,7 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		return nil, err
 	}
 
-	response := KeysSubtreeResponse{Nodes: nodes, KeysCount: keysCount}
+	response := KeysSubtreeResponse{Nodes: nodes, KeysCount: keysCount, KeyPrefix: keyPrefix}
 
 	return response, nil
 }

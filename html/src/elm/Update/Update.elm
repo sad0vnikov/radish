@@ -139,6 +139,12 @@ update msg model =
       ({model | keyToAddName = keyName}, Cmd.none)   
     AddNewKey ->
       ({model | chosenKey = Just model.keyToAddName}, addKey model)
+    ListKeyViewChosen ->
+      ({model | chosenKeysViewType = KeysListView}, Cmd.none)
+    TreeKeyViewChosen ->
+      ({model | chosenKeysViewType = KeysTreeView}, Cmd.none)
+    KeysTreeSubtreeLoaded (Ok loadedKeys) ->
+      (model, Cmd.none)
     _ ->
       (model, Cmd.none)
 

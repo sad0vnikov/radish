@@ -1,5 +1,5 @@
-module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, 
-  LoadedValues(..), RedisValuesPage, RedisValue, availableKeyTypes, keyTypeName, keyTypeAlias, keyTypeFromAlias, KeyType(..), RedisValues(..), StringRedisValue, ListRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
+module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, KeysTreeNode(..), LoadedKeysSubtree, UnfoldKeysTreeNodeInfo, CollapsedKeysTreeNodeInfo,
+  LoadedValues(..), RedisValuesPage, RedisValue, availableKeyTypes, keyTypeName, keyTypeAlias, keyTypeFromAlias, KeysViewType(..), KeyType(..), RedisValues(..), StringRedisValue, ListRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -11,11 +11,13 @@ type alias Model = {
 
   loadedServers: LoadedServers,
   loadedKeys: LoadedKeys,
+  loadedKeysTree: LoadedKeysSubtree,
   loadedValues: LoadedValues,
   
   keysMask: String,
 
   chosenServer: Maybe String,
+  chosenKeysViewType: KeysViewType,
   chosenKey: Maybe String,
 
   error: Maybe String,
@@ -40,10 +42,29 @@ type alias LoadedServers = {
     servers: Dict String Server
 }
 
+type KeysViewType = KeysListView | KeysTreeView
 type alias LoadedKeys = {
     keys: List RedisKey,
     pagesCount: Int,
     currentPage: Int
+}
+
+type alias LoadedKeysSubtree = {
+  nodesCount: Int,
+  path: List String,
+  loadedNodes: List KeysTreeNode
+}
+
+type KeysTreeNode = UnfoldKeyTreeNode UnfoldKeysTreeNodeInfo | CollapsedKeyTreeNode CollapsedKeysTreeNodeInfo | KeysTreeLeaf RedisKey
+
+type alias UnfoldKeysTreeNodeInfo = {
+    name: String,
+    childrenCount: Int,
+    loadedChildren: List LoadedKeysSubtree
+}
+
+type alias CollapsedKeysTreeNodeInfo = {
+    name: String
 }
 
 type LoadedValues = MultipleRedisValues RedisValuesPage | SingleRedisValue RedisValue
@@ -123,10 +144,16 @@ initModel flags =
     loadedServers = {
       servers = Dict.empty
     },
+    chosenKeysViewType = KeysListView,
     loadedKeys = {
       keys = [],
       pagesCount = 0,
       currentPage = 1
+    },
+    loadedKeysTree = {
+      nodesCount = 0,
+      path = [],
+      loadedNodes = []
     },
     loadedValues = SingleRedisValue <| RedisValue "" StringRedisKey,
     keysMask = "",
