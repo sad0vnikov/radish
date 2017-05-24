@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"strconv"
+
 	"strings"
 
 	"github.com/sad0vnikov/radish/config"
@@ -141,10 +142,8 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		return nil, responds.NewBadRequestError("'server' param is mandatory")
 	}
 
-	keyPrefix := requestParams["prefix"]
-	if len(keyPrefix) == 0 {
-		return nil, responds.NewBadRequestError("'prefix' param is mandatory")
-	}
+	pathURI := r.URL.Query().Get("path")
+	path := strings.Split(pathURI, "/")
 
 	offsetParam := requestParams["offset"]
 	offset, err := strconv.ParseInt(offsetParam, 0, 0)
@@ -156,16 +155,17 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 	var pageSize int32
 	pageSize = 100
 
+	keyPrefix := strings.Join(path, delimiter)
+	if len(keyPrefix) == 0 {
+		keyPrefix = "*"
+	}
 	node := db.KeyTreeNode{Name: keyPrefix, HasChildren: true}
 	nodes, keysCount, err := db.FindKeysTreeNodeChildren(serverName, delimiter, offset, pageSize, node)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
-	path := []string{}
-	if keyPrefix != "*" {
-		path = strings.Split(keyPrefix, delimiter)
-	}
+
 	response := KeysSubtreeResponse{Nodes: nodes, KeysCount: keysCount, Path: path}
 
 	return response, nil

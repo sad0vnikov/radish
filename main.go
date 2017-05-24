@@ -26,7 +26,7 @@ func main() {
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys", api.GetKeysByMask)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/info", api.GetKeyInfo)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/values", api.GetKeyValues)
-	server.AddHandler("GET", api.Version()+"/servers/{server}/keys-tree/{prefix}", api.GetKeysSubtree)
+	server.AddHandler("GET", api.Version()+"/servers/{server}/keys-tree", api.GetKeysSubtree)
 	server.AddHandler("DELETE", api.Version()+"/servers/{server}/keys/{key}", api.DeleteKey)
 
 	server.AddHandler("POST", api.Version()+"/servers/{server}/keys/strings/{key}", api.AddStringValue)
