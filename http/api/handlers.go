@@ -144,6 +144,9 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 
 	pathURI := r.URL.Query().Get("path")
 	path := strings.Split(pathURI, "/")
+	if pathURI == "" {
+		path = []string{}
+	}
 
 	offsetParam := requestParams["offset"]
 	offset, err := strconv.ParseInt(offsetParam, 0, 0)

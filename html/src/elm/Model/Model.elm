@@ -1,5 +1,5 @@
-module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, KeysTreeNode(..), LoadedKeysSubtree, UnfoldKeysTreeNodeInfo, CollapsedKeysTreeNodeInfo,
-  LoadedValues(..), RedisValuesPage, RedisValue, availableKeyTypes, keyTypeName, keyTypeAlias, keyTypeFromAlias, KeysViewType(..), KeyType(..), RedisValues(..), StringRedisValue, ListRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
+module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, KeysTreeNode(..), LoadedKeysSubtree, UnfoldKeysTreeNodeInfo, CollapsedKeysTreeNodeInfo, KeysTreeLeafInfo,
+  LoadedValues(..), RedisValuesPage, RedisValue, emptyKeysSubtree, availableKeyTypes, keyTypeName, keyTypeAlias, keyTypeFromAlias, KeysViewType(..), KeyType(..), RedisValues(..), StringRedisValue, ListRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -55,15 +55,25 @@ type alias LoadedKeysSubtree = {
   loadedNodes: List KeysTreeNode
 }
 
-type KeysTreeNode = UnfoldKeyTreeNode UnfoldKeysTreeNodeInfo | CollapsedKeyTreeNode CollapsedKeysTreeNodeInfo | KeysTreeLeaf RedisKey
+emptyKeysSubtree : List String -> LoadedKeysSubtree
+emptyKeysSubtree path =
+  LoadedKeysSubtree 0 path []
+
+type KeysTreeNode = UnfoldKeyTreeNode UnfoldKeysTreeNodeInfo | CollapsedKeyTreeNode CollapsedKeysTreeNodeInfo | KeysTreeLeaf KeysTreeLeafInfo
 
 type alias UnfoldKeysTreeNodeInfo = {
     name: String,
     childrenCount: Int,
-    loadedChildren: List LoadedKeysSubtree
+    loadedChildren: LoadedKeysSubtree
 }
 
 type alias CollapsedKeysTreeNodeInfo = {
+    path : List String,
+    name: String
+}
+
+type alias KeysTreeLeafInfo = {
+    key: RedisKey,
     name: String
 }
 
@@ -150,11 +160,7 @@ initModel flags =
       pagesCount = 0,
       currentPage = 1
     },
-    loadedKeysTree = {
-      nodesCount = 0,
-      path = [],
-      loadedNodes = []
-    },
+    loadedKeysTree = emptyKeysSubtree [],
     loadedValues = SingleRedisValue <| RedisValue "" StringRedisKey,
     keysMask = "",
     chosenServer = Maybe.Nothing,

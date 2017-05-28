@@ -1,6 +1,6 @@
-module Command.Keys exposing (getKeysPage, deleteKey, addKey)
+module Command.Keys exposing (getKeysPage, getKeysSubtree, deleteKey, addKey)
 
-import Model.Model exposing (Model, RedisKey, LoadedKeys, KeysTreeNode(..), LoadedKeysSubtree, UnfoldKeysTreeNodeInfo, CollapsedKeysTreeNodeInfo, keyTypeFromAlias)
+import Model.Model exposing (Model, RedisKey, LoadedKeys, KeysTreeNode(..), LoadedKeysSubtree, UnfoldKeysTreeNodeInfo, CollapsedKeysTreeNodeInfo, KeysTreeLeafInfo, keyTypeFromAlias)
 import Update.Msg exposing (Msg(..))
 import Http
 import Json.Decode as Decode
@@ -31,12 +31,13 @@ keysListDecoder =
     Decode.map3 LoadedKeys (Decode.field "Keys" (Decode.list Decode.string)) (Decode.field "PagesCount" Decode.int) (Decode.field "Page" Decode.int)
 
 
-getKeysSubtree : Model -> String -> Int -> Cmd Msg
-getKeysSubtree model prefix offset =
+getKeysSubtree : Model -> List String -> Int -> Cmd Msg
+getKeysSubtree model path offset =
     case model.chosenServer of
         Just chosenServer ->
             let
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys-tree/" ++ (Http.encodeUri prefix) ++ "?offset=" ++ (toString offset)
+                treePath = String.join "/" path
+                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys-tree?path=" ++ (Http.encodeUri treePath) ++ "&offset=" ++ (toString offset)
             in
                 Http.send KeysTreeSubtreeLoaded (Http.get url keysSubtreeDecoder)
         Nothing ->
@@ -44,28 +45,32 @@ getKeysSubtree model prefix offset =
 
 keysSubtreeDecoder : Decode.Decoder LoadedKeysSubtree
 keysSubtreeDecoder = 
-    Decode.map3 LoadedKeysSubtree (Decode.field "KeysCount" Decode.int) (Decode.field "Path" <| Decode.list Decode.string) (Decode.field "Nodes" decodeKeysSubtreeNodes)
+    Decode.map3 LoadedKeysSubtree (Decode.field "KeysCount" Decode.int) (decodeSubtreePath) (decodeSubtreePath |> Decode.andThen decodeKeysSubtreeNodes)
 
-decodeKeysSubtreeNodes : Decode.Decoder (List KeysTreeNode)
-decodeKeysSubtreeNodes = 
-    Decode.list 
-        <| (Decode.field "HasChildren" Decode.bool |> Decode.andThen decodeKeysTreeNode)
+decodeSubtreePath : Decode.Decoder (List String)
+decodeSubtreePath = 
+    Decode.field "Path" <| Decode.list Decode.string
 
-decodeKeysTreeNode : Bool -> Decode.Decoder KeysTreeNode
-decodeKeysTreeNode hasChildren =
+decodeKeysSubtreeNodes : List String -> Decode.Decoder (List KeysTreeNode)
+decodeKeysSubtreeNodes path = 
+    Decode.field "Nodes" <| Decode.list
+        <| (Decode.field "HasChildren" Decode.bool |> Decode.andThen (decodeKeysTreeNode path))
+
+decodeKeysTreeNode : List String -> Bool -> Decode.Decoder KeysTreeNode
+decodeKeysTreeNode path hasChildren =
     if hasChildren then
-        collapsedKeysTreeNodeDecoder
+        collapsedKeysTreeNodeDecoder path
     else
         leafKeysTreeNodeDecoder
 
 
-collapsedKeysTreeNodeDecoder : Decode.Decoder KeysTreeNode
-collapsedKeysTreeNodeDecoder =
-    Decode.map CollapsedKeyTreeNode <| Decode.map CollapsedKeysTreeNodeInfo (Decode.field "Name" Decode.string)
+collapsedKeysTreeNodeDecoder : List String -> Decode.Decoder KeysTreeNode
+collapsedKeysTreeNodeDecoder path =
+    Decode.map CollapsedKeyTreeNode <| Decode.map2 CollapsedKeysTreeNodeInfo (Decode.succeed path) (Decode.field "Name" Decode.string)
 
 leafKeysTreeNodeDecoder : Decode.Decoder KeysTreeNode
 leafKeysTreeNodeDecoder =
-    Decode.map KeysTreeLeaf (Decode.field "Name" Decode.string)
+    Decode.map KeysTreeLeaf <| Decode.map2 KeysTreeLeafInfo  (Decode.field "Key" Decode.string) (Decode.field "Name" Decode.string)
 
 addKey : Model -> Cmd Msg
 addKey model =

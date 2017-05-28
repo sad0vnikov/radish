@@ -160,16 +160,16 @@ drawKeysTreeNode : Model -> KeysTreeNode -> Html Msg
 drawKeysTreeNode model node =
   case node of
     CollapsedKeyTreeNode keyInfo ->
-      a [] [
+      a [class "list-group-item break-word", onClick <| KeysTreeCollapsedNodeClick keyInfo] [
         span [class "fa fa-plus"] [],
-        text keyInfo.name
+        text (" " ++ keyInfo.name)
       ]
-    KeysTreeLeaf key ->
+    KeysTreeLeaf keyInfo ->
       a [
-        class ("list-group-item break-word " ++ (if model.chosenKey == Just key then "active" else "")), 
-        onClick (KeyChosen key)
-      ] [text key]
+        class ("list-group-item break-word " ++ (if model.chosenKey == Just keyInfo.key then "active" else "")), 
+        onClick (KeyChosen keyInfo.key)
+      ] [text keyInfo.name]
     UnfoldKeyTreeNode keyInfo ->
-      a [] [
-
-      ]
+      span [class "list-group-item break-word"] ([
+        span [class "fa fa-minus"] [text <| " " ++ keyInfo.name]
+      ] ++ (List.map (drawKeysTreeNode model) keyInfo.loadedChildren.loadedNodes))

@@ -140,11 +140,27 @@ update msg model =
     AddNewKey ->
       ({model | chosenKey = Just model.keyToAddName}, addKey model)
     ListKeyViewChosen ->
-      ({model | chosenKeysViewType = KeysListView}, Cmd.none)
+      let
+        updatedModel = {model | chosenKeysViewType = KeysListView}
+      in
+        (updatedModel, getKeysPage updatedModel)
     TreeKeyViewChosen ->
-      ({model | chosenKeysViewType = KeysTreeView}, Cmd.none)
-    KeysTreeSubtreeLoaded (Ok loadedKeys) ->
-      (model, Cmd.none)
+      let
+        updatedModel = {model | chosenKeysViewType = KeysTreeView}
+      in
+        (updatedModel, getKeysSubtree updatedModel [] 0)
+    KeysTreeSubtreeLoaded (Err err) ->
+      let
+        errorStr = "Got error while loading keys subtree: " ++ (httpErrorToString err)
+      in
+        (model, Toastr.toastError errorStr)
+    KeysTreeSubtreeLoaded (Ok loadedSubtree) ->
+      ({model | loadedKeysTree = updateKeysTree loadedSubtree model.loadedKeysTree}, Cmd.none)
+    KeysTreeCollapsedNodeClick node ->
+      let 
+        subtreeToLoadPath = node.path ++ (List.singleton node.name)
+      in
+        (model, getKeysSubtree model subtreeToLoadPath 0)
     _ ->
       (model, Cmd.none)
 
@@ -164,6 +180,36 @@ updateServersList loadedServers servers =
 updateKeysPage : LoadedKeys -> Int -> LoadedKeys
 updateKeysPage loadedKeys newPage =
   {loadedKeys | currentPage = newPage }
+
+
+updateKeysTree : LoadedKeysSubtree -> LoadedKeysSubtree -> LoadedKeysSubtree
+updateKeysTree loadedSubtree currentSubtree =
+  if List.isEmpty loadedSubtree.path then
+    loadedSubtree
+  else
+    {currentSubtree | loadedNodes = List.map (updateSubtreeLoadedNode loadedSubtree) currentSubtree.loadedNodes}
+
+updateSubtreeLoadedNode : LoadedKeysSubtree -> KeysTreeNode -> KeysTreeNode
+updateSubtreeLoadedNode loadedSubtree node =
+  case node of
+    UnfoldKeyTreeNode unfoldKeyInfo ->
+      if Just unfoldKeyInfo.name == List.head loadedSubtree.path then
+        let 
+          subtreeWithCroppedPath = {loadedSubtree | path = List.drop 1 loadedSubtree.path}
+        in
+          UnfoldKeyTreeNode {unfoldKeyInfo | loadedChildren = updateKeysTree subtreeWithCroppedPath unfoldKeyInfo.loadedChildren}
+      else
+        node  
+    CollapsedKeyTreeNode keyInfo ->
+      if List.length loadedSubtree.path == 1 && Just keyInfo.name == List.head loadedSubtree.path then
+        let 
+           subtreeWithCroppedPath = {loadedSubtree | path = []}
+        in
+          UnfoldKeyTreeNode <| UnfoldKeysTreeNodeInfo keyInfo.name 0 (updateKeysTree subtreeWithCroppedPath (emptyKeysSubtree []))
+      else
+        node
+    _ ->
+      node 
 
 
 httpErrorToString : Http.Error -> String

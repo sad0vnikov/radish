@@ -41,6 +41,7 @@ type Key interface {
 //KeyTreeNode is a node of keys tree
 type KeyTreeNode struct {
 	Name        string
+	Key         string
 	HasChildren bool
 }
 
@@ -101,21 +102,25 @@ func getChildrenFromKeys(keys []string, maskForSearch, delimiter string) []KeyTr
 	}
 
 	for _, key := range keys {
-		key = strings.TrimPrefix(key, keyPrefix)
-		sepIndex := strings.Index(key, delimiter)
+		nodeName := strings.TrimPrefix(key, keyPrefix)
+		sepIndex := strings.Index(nodeName, delimiter)
 		hasChildren := false
 		if sepIndex != -1 {
 			hasChildren = true
-			key = strings.Split(key, delimiter)[0]
+			nodeName = strings.Split(nodeName, delimiter)[0]
 		}
 
-		mapKey := key
+		mapKey := nodeName
 		if hasChildren {
 			mapKey += delimiter
 		}
 
 		if _, prs := childKeysMap[mapKey]; prs == false {
-			childKeysMap[mapKey] = KeyTreeNode{Name: key, HasChildren: hasChildren}
+			node := KeyTreeNode{Name: nodeName, HasChildren: hasChildren}
+			if !hasChildren {
+				node.Key = key
+			}
+			childKeysMap[mapKey] = node
 		}
 	}
 
