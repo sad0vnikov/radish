@@ -161,6 +161,8 @@ update msg model =
         subtreeToLoadPath = node.path ++ (List.singleton node.name)
       in
         (model, getKeysSubtree model subtreeToLoadPath)
+    KeysTreeUnfoldNodeClick node ->
+      ({model | loadedKeysTree = collapseKeysTreeNode model.loadedKeysTree node}, Cmd.none)
     _ ->
       (model, Cmd.none)
 
@@ -205,11 +207,35 @@ updateSubtreeLoadedNode loadedSubtree node =
         let 
            subtreeWithCroppedPath = {loadedSubtree | path = []}
         in
-          UnfoldKeyTreeNode <| UnfoldKeysTreeNodeInfo keyInfo.name (updateKeysTree subtreeWithCroppedPath (emptyKeysSubtree []))
+          UnfoldKeyTreeNode <| UnfoldKeysTreeNodeInfo keyInfo.path keyInfo.name (updateKeysTree subtreeWithCroppedPath (emptyKeysSubtree []))
       else
         node
     _ ->
-      node 
+      node
+
+collapseKeysTreeNode : LoadedKeysSubtree -> UnfoldKeysTreeNodeInfo -> LoadedKeysSubtree
+collapseKeysTreeNode subtree nodeToCollapse =
+  if List.isEmpty nodeToCollapse.path then
+    {subtree | loadedNodes = List.map (\node -> 
+      case node of
+        UnfoldKeyTreeNode keyInfo -> 
+          if keyInfo.name == nodeToCollapse.name then
+            CollapsedKeyTreeNode <| CollapsedKeysTreeNodeInfo keyInfo.path keyInfo.name
+          else
+            node
+        _ -> node
+    ) subtree.loadedNodes}
+  else
+    {subtree | loadedNodes = List.map (\node ->
+      case node of
+        UnfoldKeyTreeNode keyInfo ->
+          if Just keyInfo.name == List.head nodeToCollapse.path then
+            UnfoldKeyTreeNode {keyInfo | loadedChildren = collapseKeysTreeNode keyInfo.loadedChildren {nodeToCollapse | path = List.drop 1 nodeToCollapse.path}}            
+          else
+            node
+        _ -> node
+    ) subtree.loadedNodes}
+
 
 
 httpErrorToString : Http.Error -> String

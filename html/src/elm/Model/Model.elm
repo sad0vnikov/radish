@@ -61,6 +61,7 @@ emptyKeysSubtree path =
 type KeysTreeNode = UnfoldKeyTreeNode UnfoldKeysTreeNodeInfo | CollapsedKeyTreeNode CollapsedKeysTreeNodeInfo | KeysTreeLeaf KeysTreeLeafInfo
 
 type alias UnfoldKeysTreeNodeInfo = {
+    path: List String,
     name: String,
     loadedChildren: LoadedKeysSubtree
 }

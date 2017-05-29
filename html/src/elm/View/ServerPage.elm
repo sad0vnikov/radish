@@ -175,5 +175,5 @@ drawKeysTreeNode model node =
       ] [text keyInfo.name]
     UnfoldKeyTreeNode keyInfo ->
       span [class "list-group-item break-word"] ([
-        span [class "fa fa-minus"] [text <| " " ++ keyInfo.name]
+        span [class "fa fa-minus", onClick <| KeysTreeUnfoldNodeClick keyInfo] [text <| " " ++ keyInfo.name]
       ] ++ (drawKeysTreeBranch model keyInfo.loadedChildren))

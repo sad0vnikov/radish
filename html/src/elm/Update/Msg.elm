@@ -2,7 +2,7 @@ module Update.Msg exposing (Msg(..))
 
 import Http
 import Dict exposing (Dict)
-import Model.Model exposing (LoadedKeys, Server, RedisKey, RedisValue, StringRedisValue, LoadedValues, KeyType, KeysTreeNode(..), LoadedKeysSubtree, CollapsedKeysTreeNodeInfo)
+import Model.Model exposing (LoadedKeys, Server, RedisKey, RedisValue, StringRedisValue, LoadedValues, KeyType, KeysTreeNode(..), LoadedKeysSubtree, CollapsedKeysTreeNodeInfo, UnfoldKeysTreeNodeInfo)
 
 type Msg = NoOp 
   | ChosenServer String 
@@ -43,3 +43,4 @@ type Msg = NoOp
   | TreeKeyViewChosen
   | KeysTreeSubtreeLoaded (Result Http.Error LoadedKeysSubtree)
   | KeysTreeCollapsedNodeClick CollapsedKeysTreeNodeInfo
+  | KeysTreeUnfoldNodeClick UnfoldKeysTreeNodeInfo
