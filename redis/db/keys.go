@@ -70,7 +70,7 @@ func FindKeysByMask(serverName, mask string) ([]string, error) {
 }
 
 //FindKeysTreeNodeChildren returns the first generation of children for given keys tree node
-func FindKeysTreeNodeChildren(serverName, delimiter string, offset int64, pageSize int32, node KeyTreeNode) ([]KeyTreeNode, int64, error) {
+func FindKeysTreeNodeChildren(serverName, delimiter string, pageSize int32, node KeyTreeNode) ([]KeyTreeNode, error) {
 	var maskForSearch = node.Name
 	if maskForSearch != "*" {
 		maskForSearch = maskForSearch + delimiter + "*"
@@ -79,18 +79,17 @@ func FindKeysTreeNodeChildren(serverName, delimiter string, offset int64, pageSi
 	conn, err := connector.GetByName(serverName)
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	r, err := redis.MultiBulk(conn.Do("SCAN", offset, "MATCH", maskForSearch, "COUNT", pageSize))
+	r, err := conn.Do("KEYS", maskForSearch)
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
-	cnt, _ := redis.Int64(r[0], nil)
-	keys, _ := redis.Strings(r[1], nil)
+	keys, _ := redis.Strings(r, nil)
 
-	return getChildrenFromKeys(keys, maskForSearch, delimiter), cnt, nil
+	return getChildrenFromKeys(keys, maskForSearch, delimiter), nil
 }
 
 func getChildrenFromKeys(keys []string, maskForSearch, delimiter string) []KeyTreeNode {

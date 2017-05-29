@@ -50,20 +50,18 @@ type alias LoadedKeys = {
 }
 
 type alias LoadedKeysSubtree = {
-  nodesCount: Int,
   path: List String,
   loadedNodes: List KeysTreeNode
 }
 
 emptyKeysSubtree : List String -> LoadedKeysSubtree
 emptyKeysSubtree path =
-  LoadedKeysSubtree 0 path []
+  LoadedKeysSubtree path []
 
 type KeysTreeNode = UnfoldKeyTreeNode UnfoldKeysTreeNodeInfo | CollapsedKeyTreeNode CollapsedKeysTreeNodeInfo | KeysTreeLeaf KeysTreeLeafInfo
 
 type alias UnfoldKeysTreeNodeInfo = {
     name: String,
-    childrenCount: Int,
     loadedChildren: LoadedKeysSubtree
 }
 

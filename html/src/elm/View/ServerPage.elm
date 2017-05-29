@@ -116,7 +116,7 @@ drawTreeKeysPanel model =
         ]
       ],
       div [class "list-group"] 
-        (List.map (drawKeysTreeNode model) model.loadedKeysTree.loadedNodes)
+        (drawKeysTreeBranch model model.loadedKeysTree)
     ]
   ]
 
@@ -155,6 +155,10 @@ drawToggleKeysViewButton model =
           text " Switch to list keys view"
       ]
 
+drawKeysTreeBranch : Model -> LoadedKeysSubtree -> List (Html Msg)
+drawKeysTreeBranch model loadedSubtree =
+  List.map (drawKeysTreeNode model) loadedSubtree.loadedNodes
+
 
 drawKeysTreeNode : Model -> KeysTreeNode -> Html Msg
 drawKeysTreeNode model node =
@@ -172,4 +176,4 @@ drawKeysTreeNode model node =
     UnfoldKeyTreeNode keyInfo ->
       span [class "list-group-item break-word"] ([
         span [class "fa fa-minus"] [text <| " " ++ keyInfo.name]
-      ] ++ (List.map (drawKeysTreeNode model) keyInfo.loadedChildren.loadedNodes))
+      ] ++ (drawKeysTreeBranch model keyInfo.loadedChildren))

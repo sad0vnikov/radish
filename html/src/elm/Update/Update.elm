@@ -148,7 +148,7 @@ update msg model =
       let
         updatedModel = {model | chosenKeysViewType = KeysTreeView}
       in
-        (updatedModel, getKeysSubtree updatedModel [] 0)
+        (updatedModel, getKeysSubtree updatedModel [])
     KeysTreeSubtreeLoaded (Err err) ->
       let
         errorStr = "Got error while loading keys subtree: " ++ (httpErrorToString err)
@@ -160,7 +160,7 @@ update msg model =
       let 
         subtreeToLoadPath = node.path ++ (List.singleton node.name)
       in
-        (model, getKeysSubtree model subtreeToLoadPath 0)
+        (model, getKeysSubtree model subtreeToLoadPath)
     _ ->
       (model, Cmd.none)
 
@@ -185,7 +185,7 @@ updateKeysPage loadedKeys newPage =
 updateKeysTree : LoadedKeysSubtree -> LoadedKeysSubtree -> LoadedKeysSubtree
 updateKeysTree loadedSubtree currentSubtree =
   if List.isEmpty loadedSubtree.path then
-    loadedSubtree
+    {currentSubtree | loadedNodes = (currentSubtree.loadedNodes ++ loadedSubtree.loadedNodes)}
   else
     {currentSubtree | loadedNodes = List.map (updateSubtreeLoadedNode loadedSubtree) currentSubtree.loadedNodes}
 
@@ -205,7 +205,7 @@ updateSubtreeLoadedNode loadedSubtree node =
         let 
            subtreeWithCroppedPath = {loadedSubtree | path = []}
         in
-          UnfoldKeyTreeNode <| UnfoldKeysTreeNodeInfo keyInfo.name 0 (updateKeysTree subtreeWithCroppedPath (emptyKeysSubtree []))
+          UnfoldKeyTreeNode <| UnfoldKeysTreeNodeInfo keyInfo.name (updateKeysTree subtreeWithCroppedPath (emptyKeysSubtree []))
       else
         node
     _ ->

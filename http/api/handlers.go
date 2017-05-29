@@ -128,9 +128,8 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 
 //KeysSubtreeResponse is a
 type KeysSubtreeResponse struct {
-	Nodes     []db.KeyTreeNode
-	Path      []string
-	KeysCount int64
+	Nodes []db.KeyTreeNode
+	Path  []string
 }
 
 //GetKeysSubtree is a handler for getting Redis keys tree nodes
@@ -148,12 +147,6 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		path = []string{}
 	}
 
-	offsetParam := requestParams["offset"]
-	offset, err := strconv.ParseInt(offsetParam, 0, 0)
-	if err != nil {
-		offset = 0
-	}
-
 	delimiter := ":"
 	var pageSize int32
 	pageSize = 100
@@ -163,13 +156,13 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		keyPrefix = "*"
 	}
 	node := db.KeyTreeNode{Name: keyPrefix, HasChildren: true}
-	nodes, keysCount, err := db.FindKeysTreeNodeChildren(serverName, delimiter, offset, pageSize, node)
+	nodes, err := db.FindKeysTreeNodeChildren(serverName, delimiter, pageSize, node)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
 
-	response := KeysSubtreeResponse{Nodes: nodes, KeysCount: keysCount, Path: path}
+	response := KeysSubtreeResponse{Nodes: nodes, Path: path}
 
 	return response, nil
 }

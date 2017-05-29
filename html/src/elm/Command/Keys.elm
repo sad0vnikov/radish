@@ -31,13 +31,13 @@ keysListDecoder =
     Decode.map3 LoadedKeys (Decode.field "Keys" (Decode.list Decode.string)) (Decode.field "PagesCount" Decode.int) (Decode.field "Page" Decode.int)
 
 
-getKeysSubtree : Model -> List String -> Int -> Cmd Msg
-getKeysSubtree model path offset =
+getKeysSubtree : Model -> List String -> Cmd Msg
+getKeysSubtree model path =
     case model.chosenServer of
         Just chosenServer ->
             let
                 treePath = String.join "/" path
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys-tree?path=" ++ (Http.encodeUri treePath) ++ "&offset=" ++ (toString offset)
+                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys-tree?path=" ++ (Http.encodeUri treePath)
             in
                 Http.send KeysTreeSubtreeLoaded (Http.get url keysSubtreeDecoder)
         Nothing ->
@@ -45,7 +45,7 @@ getKeysSubtree model path offset =
 
 keysSubtreeDecoder : Decode.Decoder LoadedKeysSubtree
 keysSubtreeDecoder = 
-    Decode.map3 LoadedKeysSubtree (Decode.field "KeysCount" Decode.int) (decodeSubtreePath) (decodeSubtreePath |> Decode.andThen decodeKeysSubtreeNodes)
+    Decode.map2 LoadedKeysSubtree (decodeSubtreePath) (decodeSubtreePath |> Decode.andThen decodeKeysSubtreeNodes)
 
 decodeSubtreePath : Decode.Decoder (List String)
 decodeSubtreePath = 
