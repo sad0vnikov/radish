@@ -107,7 +107,7 @@ drawValueOrEditField : Model -> StringRedisValue -> Html Msg
 drawValueOrEditField model value =
   case model.editingValue of
     Nothing ->
-      div [class "well"] [
+      div [class "well break-word"] [
           text value
       ]
     Just valueToEdit ->
@@ -128,11 +128,11 @@ drawValueOrEditField model value =
 hashKeyValues : Model -> (Dict String StringRedisValue) -> Html Msg
 hashKeyValues model values = 
  div [] [
-   table [class "table"] [
+   table [class "table hash-values"] [
      thead [] [
-       th [] [text "key"],
-       th [] [text "value"],
-       th [] []
+       th [class "key"] [text "key"],
+       th [class "value"] [text "value"],
+       th [class "buttons"] []
      ],
      tbody [] <| (Dict.values <| Dict.map (drawHashValueOrEditFields model) values) ++ (List.singleton <| maybeDrawHashValueAddFields model)
    ],
@@ -157,13 +157,13 @@ drawHashValueOrEditFields model hashKey hashValue =
 drawHashValueRow : Model -> String -> StringRedisValue -> Html Msg
 drawHashValueRow model hashKey hashValue = 
     tr [] [
-         td [] [
+         td [class "break-word key"] [
             text hashKey
          ], 
-         td [] [
+         td [class "break-word value"] [
             text hashValue
          ],
-         td [] [
+         td [class "buttons"] [
            button [class "btn btn-sm btn-edit", onClick <| ValueToEditSelected (hashKey, hashValue)] [
              i [class "fa fa-pencil"] []
            ],
@@ -176,13 +176,13 @@ drawHashValueRow model hashKey hashValue =
 drawHashValueEditFields : Model -> String -> StringRedisValue -> Html Msg
 drawHashValueEditFields model hashKey hashValue =
   tr [] [
-    td [] [
+    td [class "key"] [
       text hashKey
     ],
-    td [] [
+    td [class "value"] [
       input [class "form-control", Html.Attributes.value model.editingValueToSave, onInput EditedValueChanged] []
     ],
-    td [] [
+    td [class "buttons"] [
       button [class "btn btn-sm btn-primary", onClick <| ValueUpdateInitialized hashKey] [
         i [class "fa fa-save"] []
       ],
@@ -202,13 +202,13 @@ maybeDrawHashValueAddFields model =
 drawHashValueAddFields : Model -> Html Msg
 drawHashValueAddFields model = 
   tr [] [
-    td [] [
+    td [class "key"] [
       input [class "form-control", Html.Attributes.value model.addingHashKey, onInput AddingHashKeyChanged] []
     ],
-    td [] [
+    td [class "value"] [
       input [class "form-control", Html.Attributes.value model.addingValue, onInput AddingValueChanged] []
     ],
-    td [] [
+    td [class "buttons"] [
       button [class "btn btn-sm btn-primary", onClick AddingValueInitialized] [
         i [class "fa fa-save"] []
       ],
@@ -221,11 +221,11 @@ drawHashValueAddFields model =
 listKeyValues : Model -> (List ListRedisValue) -> Html Msg
 listKeyValues model values = 
   div [] [
-    table [class "table"] [
+    table [class "table list-values"] [
       thead [] [
-        th [] [text "index"],
-        th [] [text "value"],
-        th [] []
+        th [class "index"] [text "index"],
+        th [class "value"] [text "value"],
+        th [class "buttons"] []
       ],
       tbody [] <| (List.map (drawListValueOrEditFields model) values) ++ (List.singleton <| maybeDrawListValueAddFields model)
     ],
@@ -251,13 +251,13 @@ drawListValueOrEditFields model value =
 drawListValueRow : Model -> ListRedisValue -> Html Msg
 drawListValueRow  model listMember = 
     tr [] [
-        td [] [
+        td [class "break-word index"] [
             text <| toString listMember.index
         ],
-        td [] [
+        td [class "break-word value"] [
             text listMember.value
         ],
-        td [] [
+        td [class "buttons"] [
             button [class "btn btn-sm", onClick <| ValueToEditSelected (toString listMember.index, listMember.value)] [
               i [class "fa fa-pencil"] []
             ],
@@ -270,13 +270,13 @@ drawListValueRow  model listMember =
 drawListValueEditFields : Model -> ListRedisValue -> Html Msg
 drawListValueEditFields model listMember =
   tr [] [
-    td [] [
+      td [class "index"] [
         text <| toString listMember.index
       ],
-      td [] [
+      td [class "value"] [
         input [class "form-control", onInput EditedValueChanged, Html.Attributes.value model.editingValueToSave] []
       ],
-      td [] [
+      td [class "buttons"] [
         button [class "btn btn-sm btn-primary", onClick <| ValueUpdateInitialized (toString listMember.index)] [
           i [class "fa fa-save"] []
         ],
@@ -297,13 +297,13 @@ maybeDrawListValueAddFields model =
 drawListValueAddFields : Model -> Html Msg
 drawListValueAddFields model = 
     tr [] [
-      td [] [
+        td [class "index"] [
           
         ],
-        td [] [
+        td [class "value"] [
           input [class "form-control", onInput AddingValueChanged, Html.Attributes.value model.addingValue] []
         ],
-        td [] [
+        td [class "buttons"] [
           button [class "btn btn-sm btn-primary", onClick <| AddingValueInitialized] [
             i [class "fa fa-save"] []
           ],
@@ -317,11 +317,11 @@ drawListValueAddFields model =
 setKeyValues : Model -> (List StringRedisValue) -> Html Msg
 setKeyValues model values = 
   div [] [
-    table [class "table"] [
+    table [class "table set-values"] [
       thead [] [
 
-        th [] [text "value"],
-        th [] []
+        th [class "value"] [text "value"],
+        th [class "buttons"] []
       ],
       tbody [] <| (List.map (drawSetValueRowOrEditFields model) values) ++ (List.singleton <| maybeDrawSetValueAddFields model)
     ],
@@ -349,10 +349,10 @@ drawSetValueRowOrEditFields model value =
 drawSetValueRow : Model -> StringRedisValue -> Html Msg
 drawSetValueRow model value =
     tr [] [
-        td [] [
+        td [class "break-word value"] [
             text value
           ],
-        td [] [
+        td [class "buttons"] [
             button [class "btn btn-sm", onClick <| ValueToEditSelected (value, value)] [i [class "fa fa-pencil"] []],
             button [class "btn btn-sm btn-danger", onClick (ValueDeletionConfirm value)] [i [class "fa fa-remove"] []]
         ]
@@ -361,10 +361,10 @@ drawSetValueRow model value =
 drawSetEditFieldsRow : Model -> StringRedisValue -> Html Msg
 drawSetEditFieldsRow model value =
     tr [] [
-      td [] [
+      td [class "value"] [
         input [class "form-control", onInput EditedValueChanged, Html.Attributes.value model.editingValueToSave] []
       ],
-      td [] [
+      td [class "buttons"] [
         button [class "btn btn-sm btn-primary", onClick <| ValueUpdateInitialized value] [
           i [class "fa fa-save"] []
         ],
@@ -384,10 +384,10 @@ maybeDrawSetValueAddFields model =
 drawSetValueAddFields : Model -> Html Msg
 drawSetValueAddFields model =
   tr [] [
-      td [] [
+      td [class "value"] [
         input [class "form-control", onInput AddingValueChanged, Html.Attributes.value model.addingValue] []
       ],
-      td [] [
+      td [class "buttons"] [
         button [class "btn btn-sm btn-primary", onClick AddingValueInitialized] [
           i [class "fa fa-save"] []
         ],
@@ -400,11 +400,11 @@ drawSetValueAddFields model =
 sortedSetValues: Model -> (List ZSetRedisValue) -> Html Msg
 sortedSetValues model values = 
   div [] [
-    table [class "table"] [
+    table [class "table zset-values"] [
       thead [] [
-        th [] [text "score"],
-        th [] [text "value"],
-        th [] []
+        th [class "score"] [text "score"],
+        th [class "value"] [text "value"],
+        th [class "buttons"] []
       ],
       tbody [] <| (List.map (drawSortedSetValueRowOrEditFields model) values) ++ (List.singleton <| maybeDrawSortedSetAddFields model)
     ],
@@ -430,13 +430,13 @@ drawSortedSetValueRowOrEditFields model value =
 drawSortedSetValueRow : Model -> ZSetRedisValue -> Html Msg
 drawSortedSetValueRow model value =
      tr [] [
-        td [] [
+        td [class "break-word score"] [
             text <| toString value.score
         ],
-        td [] [
+        td [class "break-word value"] [
             text value.value
         ],
-        td [] [
+        td [class "buttons"] [
             button [class "btn btn-sm btn-edit", onClick <| ZSetValueToEditSelected (value.value, value.value, value.score)] [
               i [class "fa fa-pencil"] []
             ],
@@ -449,13 +449,13 @@ drawSortedSetValueRow model value =
 drawSortedSetEditFields : Model -> ZSetRedisValue -> Html Msg
 drawSortedSetEditFields model value =
     tr [] [
-      td [] [
+      td [class "score"] [
           input [class "form-control", Html.Attributes.value <| toString model.editingScoreToSave, onInput EditedScoreChanged] []
       ],
-      td [] [
+      td [class "value"] [
           input [class "form-control", Html.Attributes.value model.editingValueToSave, onInput EditedValueChanged] []          
       ],
-      td [] [
+      td [class "buttons"] [
           button [class "btn btn-sm btn-primary", onClick <| ValueUpdateInitialized value.value] [
             i [class "fa fa-save"] []
           ],
@@ -475,13 +475,13 @@ maybeDrawSortedSetAddFields model =
 drawSortedSetAddFields : Model -> Html Msg
 drawSortedSetAddFields model =
   tr [] [
-      td [] [
+      td [class "score"] [
           input [class "form-control", Html.Attributes.value <| toString model.addingZSetScore, onInput AddingZSetScoreChanged] []
       ],
-      td [] [
+      td [class "values"] [
           input [class "form-control", Html.Attributes.value model.addingValue, onInput AddingValueChanged] []          
       ],
-      td [] [
+      td [class "buttons"] [
           button [class "btn btn-sm btn-primary", onClick <| AddingValueInitialized] [
             i [class "fa fa-save"] []
           ],

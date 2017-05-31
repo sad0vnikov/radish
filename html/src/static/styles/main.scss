@@ -8,4 +8,52 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 
 .break-word {
     word-wrap: break-word;
+    word-break: break-all;
+}
+
+table.hash-values,
+table.set-values,
+table.zset-values,
+table.list-value {
+    table-layout: fixed;
+}
+
+.hash-values {
+    .key {
+        width: 30%;
+    }
+    .value {
+        width: 60%;
+    }
+}
+
+.set-values .value {
+    width: 90%;
+}
+
+.zset-values {
+    .score {
+        width: 30%;
+    }
+    .value {
+        width: 60%;
+    }
+}
+
+.list-values {
+    .index {
+        width: 20%;
+    }
+    .value {
+        width: 70%;
+    }
+}
+
+
+
+.hash-values .buttons,
+.set-values .buttons,
+.zset-values .buttons,
+.list-value .buttons {
+    width: 10%;
 }
