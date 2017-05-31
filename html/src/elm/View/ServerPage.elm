@@ -14,7 +14,7 @@ import View.AddKeyModal as AddKeyModal
 
 view : Model -> Html Msg
 view model =
-  div [ class "container" ] [   
+  div [ class "container" ] [
       navbar model,
       maybeDrawWorkspace model,
       AddKeyModal.view model
@@ -32,7 +32,8 @@ navbar model =
               li [ class "dropdown" ] [
                 a [ class "dropdown-toggle", attribute "data-toggle" "dropdown" ] [
                     i [class "fa fa-server"] [],
-                    text " Choose server"
+                    text " ",
+                    drawChosenServerName model
                 ],
                 ul [ class "dropdown-menu" ] 
                   <| List.map (\server -> 
@@ -46,6 +47,13 @@ navbar model =
       ]
     ]
   ]
+
+drawChosenServerName : Model -> Html Msg
+drawChosenServerName model =
+  case model.chosenServer of
+    Just serverName -> text serverName
+    Nothing -> text "Choose server"
+
 
 maybeDrawWorkspace : Model -> Html Msg
 maybeDrawWorkspace model =
