@@ -11,13 +11,22 @@ import Update.Msg exposing (Msg(..))
 import View.Pagination exposing (drawPager)
 import View.Values exposing (..)
 import View.AddKeyModal as AddKeyModal
+import View.AboutModal as AboutModal
+import Dialog
 
 view : Model -> Html Msg
 view model =
   div [ class "container" ] [
       navbar model,
       maybeDrawWorkspace model,
-      AddKeyModal.view model
+      Dialog.view (
+        if model.addKeyModalShown then
+          AddKeyModal.view model
+        else if model.aboutWindowShown then
+          AboutModal.view model
+        else
+          Nothing
+      )
   ]
 
 navbar : Model -> Html Msg
@@ -26,7 +35,7 @@ navbar model =
     nav [ class "navbar navbar-default" ] [
         div [ class "container-fluid" ] [
             div [ class "navbar-header" ] [
-              a [class "navbar-brand" ] [ text "Radish" ]
+              a [class "navbar-brand", href "#", onClick LogoClick] [ text "Radish" ]
             ],
             ul [ class "navbar-right nav navbar-nav" ] [
               li [ class "dropdown" ] [
@@ -42,8 +51,7 @@ navbar model =
                       ] 
                     ) <| Dict.values model.loadedServers.servers
               ]
-          
-          ]
+            ]
       ]
     ]
   ]

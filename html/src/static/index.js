@@ -17,8 +17,23 @@ currentURI = currentURI.replace("?", "")
 if (currentURI.charAt(currentURI.length - 1) != "/") {
     currentURI += "/";
 } 
+
+var xhr = new XMLHttpRequest();
+xhr.open("GET", currentURI + 'api/v1/appVersion', false);
+xhr.send();
+
+appVersion = "UNKNOWN";
+if (xhr.status == 200) {
+    console.log(xhr.responseText);
+    versionInfo = JSON.parse(xhr.responseText);
+    if (versionInfo && versionInfo.Version) {
+        appVersion = versionInfo.Version
+    }
+}
+
 var app = Elm.Main.embed( document.getElementById( 'main' ), {
-    apiUrl: currentURI + 'api/v1'
+    apiUrl: currentURI + 'api/v1',
+    appVersion: appVersion,
 } );
 
 toastr.options.positionClass = "toast-bottom-right";

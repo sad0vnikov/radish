@@ -5,6 +5,10 @@ import Dict exposing (..)
 import Flags exposing (Flags)
 
 type alias Model = {
+  appInfo: {
+    version: String
+  },
+
   api: {
     url: String
   },
@@ -33,6 +37,7 @@ type alias Model = {
   addingZSetScore: Int,
 
   addKeyModalShown: Bool,
+  aboutWindowShown: Bool,  
   keyToAddType: String,
   keyToAddName: String
 }
@@ -149,6 +154,7 @@ type UserConfirmation = KeyDeletion String | ValueDeletion String
 initModel : Flags -> Model
 initModel flags =
   {
+    appInfo = { version = flags.appVersion },
     api = { url = flags.apiUrl},
     loadedServers = {
       servers = Dict.empty
@@ -176,6 +182,7 @@ initModel flags =
     addingZSetScore = 0,
 
     addKeyModalShown = False,
+    aboutWindowShown = False,    
     keyToAddType = keyTypeAlias StringRedisKey,
     keyToAddName = ""
   }

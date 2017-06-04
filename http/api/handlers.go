@@ -9,6 +9,8 @@ import (
 
 	"strings"
 
+	"io/ioutil"
+
 	"github.com/sad0vnikov/radish/config"
 	"github.com/sad0vnikov/radish/http/responds"
 	"github.com/sad0vnikov/radish/http/server"
@@ -776,4 +778,24 @@ func DeleteZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 	}
 
 	return "", nil
+}
+
+type appVersionResponse struct {
+	Version string
+}
+
+//GetAppVersion returns current app version
+func GetAppVersion(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	fileContents := make([]byte, 10)
+	fileContents, err := ioutil.ReadFile("VERSION")
+	if err != nil {
+		return "", err
+	}
+
+	appVersion := string(fileContents)
+
+	response := appVersionResponse{}
+	response.Version = appVersion
+
+	return response, nil
 }

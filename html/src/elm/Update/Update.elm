@@ -163,6 +163,12 @@ update msg model =
         (model, getKeysSubtree model subtreeToLoadPath)
     KeysTreeUnfoldNodeClick node ->
       ({model | loadedKeysTree = collapseKeysTreeNode model.loadedKeysTree node}, Cmd.none)
+    LogoClick -> 
+      update AboutWindowOpen model
+    AboutWindowOpen ->
+      ({model | aboutWindowShown = True}, Cmd.none)
+    AboutWindowClose->
+      ({model | aboutWindowShown = False}, Cmd.none)
     _ ->
       (model, Cmd.none)
 

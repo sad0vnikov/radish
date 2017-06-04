@@ -48,6 +48,8 @@ func main() {
 	server.AddHandler("PUT", api.Version()+"/servers/{server}/keys/zsets/{key}/values/{value}", api.UpdateZSetValue)
 	server.AddHandler("DELETE", api.Version()+"/servers/{server}/keys/zsets/{key}/values/{value}", api.DeleteZSetValue)
 
+	server.AddHandler("GET", api.Version()+"/appVersion", api.GetAppVersion)
+
 	server.ServeStatic()
 	server.Init()
 

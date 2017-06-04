@@ -44,3 +44,6 @@ type Msg = NoOp
   | KeysTreeSubtreeLoaded (Result Http.Error LoadedKeysSubtree)
   | KeysTreeCollapsedNodeClick CollapsedKeysTreeNodeInfo
   | KeysTreeUnfoldNodeClick UnfoldKeysTreeNodeInfo
+  | LogoClick
+  | AboutWindowOpen
+  | AboutWindowClose
