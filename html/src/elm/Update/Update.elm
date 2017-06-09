@@ -128,7 +128,7 @@ update msg model =
     ValueAdded (Ok response) ->
       ({model | isAddingValue = False, addKeyModalShown = False}, getKeyValues model)
     ValueAdded (Err err) ->
-      (model, Toastr.toastError <| "Error while adding value: " ++ (httpErrorToString err))
+      (model, Toastr.toastError <| "Error while adding value: " ++ (valueAddingErrorToString err))
     ShowAddKeyModal ->
       ({model | addKeyModalShown = True}, Cmd.none)
     CloseAddKeyModal ->
@@ -252,3 +252,12 @@ httpErrorToString err =
     Http.NetworkError -> "Network error"
     Http.BadStatus _ ->  "Got error response"
     Http.BadPayload _ _ ->  "Cannot decode response"
+
+
+valueAddingErrorToString : Http.Error -> String
+valueAddingErrorToString err =
+ case err of
+  Http.BadStatus response -> 
+    if response.status.code == 409 then "Key already exists"
+    else httpErrorToString err
+  _ -> httpErrorToString err
