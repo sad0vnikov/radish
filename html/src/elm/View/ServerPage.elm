@@ -96,9 +96,6 @@ drawListKeysPanel : Model -> Html Msg
 drawListKeysPanel model =
   div [class "panel panel-default"] [
     div [class "panel-heading"] [
-                
-    ],
-    div [class "panel-body"] [
         Html.form [class "form-inline"] [
           div [class "input-group form-group"] [
             input [type_ "text", class "form-control", placeholder "*", value model.keysMask, onInput KeysMaskChanged] [],
@@ -107,7 +104,9 @@ drawListKeysPanel model =
           div [class "pull-right"] [
             drawKeysActionsButton model
           ]
-        ],
+        ]   
+    ],
+    div [class "panel-body"] [
         div [class "list-group"]
           (List.map (\key ->
             a [
@@ -125,7 +124,10 @@ drawTreeKeysPanel : Model -> Html Msg
 drawTreeKeysPanel model =
   div [class "panel panel-default"] [
     div [class "panel-heading"] [
-
+        div [class "pull-right"] [
+          drawKeysActionsButton model
+        ],
+        div [class "clearfix"] []
     ],
     div [class "panel-body"] [
       div [] [
