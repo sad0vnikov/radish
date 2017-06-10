@@ -32,21 +32,30 @@ addFirstAndLastPages : Int -> (List Int) -> (List Int)
 addFirstAndLastPages lastPagesNum pages =
     (getFirstPageNumbers pages) ++ pages ++ (getLastPageNumbers lastPagesNum pages)
 
-{-- a button for page 0 will be displayed button with ellipsis --}
+{-- a button for page 0 will be displayed as a button with ellipsis --}
 getFirstPageNumbers : (List Int) -> (List Int)
 getFirstPageNumbers pages =
-    if List.head pages == Just 2 then
+    if List.head pages == Nothing then 
+        []
+    else if List.head pages == Just 2 then
         [1]
     else
         [1, 0]
 
-{-- a button for page 0 will be displayed button with ellipsis --}
+{-- a button for page 0 will be displayed as a button with ellipsis --}
 getLastPageNumbers : Int -> (List Int) -> (List Int)
 getLastPageNumbers lastPageNum pages =
-    if List.head (List.reverse pages) == Just (lastPageNum - 1) then
-        [lastPageNum]
-    else
-        [0, lastPageNum]
+    let 
+        reversedPages = List.reverse pages
+    in
+        if List.head reversedPages == Just lastPageNum then
+            []
+        else if List.head reversedPages == Just (lastPageNum - 1) then
+            [lastPageNum]
+        else if List.head reversedPages == Nothing then
+            []
+        else
+            [0, lastPageNum]
 
 filterPageButtons :  Int -> Int -> (List Int) -> (List Int)
 filterPageButtons totalPagesCount currentPage pages =
