@@ -1,5 +1,5 @@
 # Radish
-*v0.1.0*
+*v0.2.0*
 
 Radish is a simple and powerful Redis GUI administration panel
 
@@ -7,7 +7,6 @@ Radish is a simple and powerful Redis GUI administration panel
 As for now Radish supports only managing (adding, deleting, updating) different types of keys and values
 
 ### Features soming soon (or later...):
-* Tree view for keys
 * Slowlog
 * Monitoring instances load
 * Keyboard shortcuts
