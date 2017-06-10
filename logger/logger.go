@@ -19,22 +19,22 @@ func GetOutput() io.Writer {
 
 //Error log fatal error
 func Error(v ...interface{}) {
-	log.Fatal(v)
+	log.Panic(v)
 }
 
 //Errorf log fatal error (formatted)
 func Errorf(s string, v ...interface{}) {
-	log.Fatalf(s, v)
+	log.Panicf(s, v)
 }
 
 //Critical log critical error
 func Critical(v ...interface{}) {
-	log.Panic(v)
+	log.Fatal(v)
 }
 
 //Criticalf log critical error (formatted)
 func Criticalf(s string, v ...interface{}) {
-	log.Panicf(s, v)
+	log.Fatalf(s, v)
 }
 
 //Info logs info message
