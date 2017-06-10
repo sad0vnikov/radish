@@ -5,6 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Update.Msg exposing (Msg(..))
 import Html.Events exposing (onClick, onInput)
+import View.Pagination exposing (drawPager)
 
 
 import Model.Model exposing (..)
@@ -76,10 +77,10 @@ drawKeyValuesEditorByType key model =
 drawMultipleRedisValues : Model -> String -> RedisValuesPage -> Html Msg
 drawMultipleRedisValues model key redisValuesPage =
     case redisValuesPage.values of
-        ListRedisValues values -> listKeyValues model values
-        HashRedisValues values -> hashKeyValues model values
-        SetRedisValues values -> setKeyValues model values
-        ZSetRedisValues values -> sortedSetValues model values
+        ListRedisValues values -> listKeyValues model values redisValuesPage.pagesCount redisValuesPage.currentPage
+        HashRedisValues values -> hashKeyValues model values redisValuesPage.pagesCount redisValuesPage.currentPage
+        SetRedisValues values -> setKeyValues model values redisValuesPage.pagesCount redisValuesPage.currentPage
+        ZSetRedisValues values -> sortedSetValues model values redisValuesPage.pagesCount redisValuesPage.currentPage
         _ ->
             div [] []
 
@@ -125,8 +126,8 @@ drawValueOrEditField model value =
         ]
       ]
 
-hashKeyValues : Model -> (Dict String StringRedisValue) -> Html Msg
-hashKeyValues model values = 
+hashKeyValues : Model -> (Dict String StringRedisValue) -> Int -> Int -> Html Msg
+hashKeyValues model values pagesCount currentPage = 
  div [] [
    table [class "table hash-values"] [
      thead [] [
@@ -136,10 +137,15 @@ hashKeyValues model values =
      ],
      tbody [] <| (Dict.values <| Dict.map (drawHashValueOrEditFields model) values) ++ (List.singleton <| maybeDrawHashValueAddFields model)
    ],
-   div [] [
-     button [class "btn btn-sm btn-primary", onClick AddingValueStart] [
-       i [class "fa fa-plus"] [],
-       text " Add a new value"
+   div [class "row"] [
+     div [class "col-xs-8"] [
+        drawPager pagesCount currentPage ValuesPageChanged
+     ],
+     div [class "col-xs-4"] [
+        button [class "btn btn-sm btn-primary add-new-value-btn", onClick AddingValueStart] [
+          i [class "fa fa-plus"] [],
+          text " Add a new value"
+        ]
      ]
    ]
  ]
@@ -218,8 +224,8 @@ drawHashValueAddFields model =
     ]
   ]
 
-listKeyValues : Model -> (List ListRedisValue) -> Html Msg
-listKeyValues model values = 
+listKeyValues : Model -> (List ListRedisValue) -> Int -> Int -> Html Msg
+listKeyValues model values pagesCount currentPage = 
   div [] [
     table [class "table list-values"] [
       thead [] [
@@ -229,11 +235,17 @@ listKeyValues model values =
       ],
       tbody [] <| (List.map (drawListValueOrEditFields model) values) ++ (List.singleton <| maybeDrawListValueAddFields model)
     ],
-    div [] [
-      button [class "btn btn-sm btn-primary", onClick AddingValueStart] [
-        i [class "fa fa-plus"] [],
-        text " Add a new list member"
+    div [class "row"] [
+      div [class "col-xs-8"] [
+        drawPager pagesCount currentPage ValuesPageChanged
+      ],
+      div [class "col-xs-4"] [
+        button [class "btn btn-sm btn-primary add-new-value-btn", onClick AddingValueStart] [
+          i [class "fa fa-plus"] [],
+          text " Add a new list member"
+        ]
       ]
+      
     ]
   ]
 
@@ -314,8 +326,8 @@ drawListValueAddFields model =
     ]
   
 
-setKeyValues : Model -> (List StringRedisValue) -> Html Msg
-setKeyValues model values = 
+setKeyValues : Model -> (List StringRedisValue) -> Int -> Int -> Html Msg
+setKeyValues model values pagesCount currentPage = 
   div [] [
     table [class "table set-values"] [
       thead [] [
@@ -325,11 +337,17 @@ setKeyValues model values =
       ],
       tbody [] <| (List.map (drawSetValueRowOrEditFields model) values) ++ (List.singleton <| maybeDrawSetValueAddFields model)
     ],
-    div [] [
-      button [class "btn btn-sm btn-primary", onClick AddingValueStart] [
-        i [class "fa fa-plus"] [],
-        text " Add a new set member"
+    div [class "row"] [
+      div [class "col-xs-8"] [
+        drawPager pagesCount currentPage ValuesPageChanged
+      ],
+      div [class "col-xs-4"] [
+        button [class "btn btn-sm btn-primary add-new-value-button", onClick AddingValueStart] [
+          i [class "fa fa-plus"] [],
+          text " Add a new set member"
+        ]
       ]
+      
     ]
   ]
 
@@ -397,8 +415,8 @@ drawSetValueAddFields model =
       ]
     ]
 
-sortedSetValues: Model -> (List ZSetRedisValue) -> Html Msg
-sortedSetValues model values = 
+sortedSetValues: Model -> (List ZSetRedisValue) -> Int -> Int -> Html Msg
+sortedSetValues model values pagesCount currentPage = 
   div [] [
     table [class "table zset-values"] [
       thead [] [
@@ -408,11 +426,17 @@ sortedSetValues model values =
       ],
       tbody [] <| (List.map (drawSortedSetValueRowOrEditFields model) values) ++ (List.singleton <| maybeDrawSortedSetAddFields model)
     ],
-    div [] [
-      button [class "btn btn-sm btn-primary", onClick AddingValueStart] [
-        i [class "fa fa-plus"] [],
-        text " Add a new member"
+    div [class "row"] [
+      div [class "col-xs-8"] [
+        drawPager pagesCount currentPage ValuesPageChanged
+      ], 
+      div [class "col-xs-4"] [
+        button [class "btn btn-sm btn-primary add-new-value-button", onClick AddingValueStart] [
+          i [class "fa fa-plus"] [],
+          text " Add a new member"
+        ]
       ]
+      
     ]
   ]
 

@@ -46,7 +46,9 @@ update msg model =
       let
         updatedModel = {model | chosenKey = Just key, editingValue = Nothing, isAddingValue = False}
       in
-        (updatedModel, getKeyValues updatedModel)
+        (updatedModel, getKeyValues updatedModel 1)
+    ValuesPageChanged page ->
+      (model, getKeyValues model page)
     UserConfirmation ->
       case model.waitingForConfirmation of
         Just value ->
@@ -77,7 +79,7 @@ update msg model =
     ValueDeletionConfirmed value ->
       (model, deleteValue model value)
     ValueDeleted (Ok response) ->
-      (model, getKeyValues model) 
+      (model, getKeyValues model 1) 
     ValueDeleted (Err err) ->
       (model, Toastr.toastError <| "Got error while deleting value: " ++ (httpErrorToString err))
     ValueToEditSelected (valueReference, currentValue) ->
@@ -107,7 +109,7 @@ update msg model =
         Just key -> (model, updateValue model value model.editingValueToSave)
         Nothing -> (model, Cmd.none)
     ValueUpdated (Ok response) ->
-      ({model | editingValue = Nothing}, getKeyValues model)
+      ({model | editingValue = Nothing}, getKeyValues model 1)
     ValueUpdated (Err err) ->
       (model, Toastr.toastError <| "Error while updating value: " ++ (httpErrorToString err))
 
@@ -126,7 +128,7 @@ update msg model =
     AddingValueInitialized ->
       (model, addValueForChosenKey model)
     ValueAdded (Ok response) ->
-      ({model | isAddingValue = False, addKeyModalShown = False}, getKeyValues model)
+      ({model | isAddingValue = False, addKeyModalShown = False}, getKeyValues model 1)
     ValueAdded (Err err) ->
       (model, Toastr.toastError <| "Error while adding value: " ++ (valueAddingErrorToString err))
     ShowAddKeyModal ->

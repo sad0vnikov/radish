@@ -3,6 +3,7 @@ package db
 import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/sad0vnikov/radish/logger"
+	rd "github.com/sad0vnikov/radish/redis"
 )
 
 type HashKey struct {
@@ -40,21 +41,27 @@ func (key HashKey) Values(pageNum int, pageSize int) (interface{}, error) {
 	}
 
 	var (
-		cursor int64
 		values []string
 	)
 
-	r, err := redis.Values(conn.Do("HSCAN", key.key, pageNum*pageSize, "COUNT", pageSize))
-	r, err = redis.Scan(r, &cursor, &values)
+	r, err := conn.Do("HGETALL", key.key)
+	values, err = redis.Strings(r, err)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
 
+	offsetStart, offsetEnd, err := rd.GetPageRangeForStrings(values, pageSize*2, pageNum)
+
+	if err != nil {
+		return nil, err
+	}
+	valuesPage := values[offsetStart:offsetEnd]
+
 	valuesMap := make(map[string]string)
-	for i := 1; i < len(values); i = i + 2 {
-		hashKey := values[i-1]
-		hashValue := values[i]
+	for i := 1; i < len(valuesPage); i = i + 2 {
+		hashKey := valuesPage[i-1]
+		hashValue := valuesPage[i]
 		valuesMap[hashKey] = hashValue
 	}
 

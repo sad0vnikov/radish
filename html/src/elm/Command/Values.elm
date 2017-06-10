@@ -10,12 +10,12 @@ import Http
 import Command.Http.Requests exposing (put, delete, post)
 import Maybe exposing (andThen)
 
-getKeyValues : Model -> Cmd Msg
-getKeyValues model =
+getKeyValues : Model -> Int -> Cmd Msg
+getKeyValues model pageNum =
     case getChosenServerAndKey model of
         Just (chosenServer,chosenKey) ->
             let
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/" ++ chosenKey ++ "/values?page=" ++ (toString model.loadedKeys.currentPage)
+                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/" ++ chosenKey ++ "/values?page=" ++ (toString pageNum)
             in
                 Http.send KeyValuesLoaded (Http.get url valuesDecoder)
         Nothing ->

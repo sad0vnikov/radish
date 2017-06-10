@@ -15,6 +15,7 @@ import (
 	"github.com/sad0vnikov/radish/http/responds"
 	"github.com/sad0vnikov/radish/http/server"
 	"github.com/sad0vnikov/radish/logger"
+	"github.com/sad0vnikov/radish/redis"
 	"github.com/sad0vnikov/radish/redis/db"
 )
 
@@ -64,14 +65,9 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) (interface{}, error) 
 		return nil, err
 	}
 
-	pageOffsetEnd := pageNumber * pageSize
-	if pageOffsetEnd > len(keys) {
-		pageOffsetEnd = len(keys)
-	}
-
-	pageOffsetStart := (pageNumber - 1) * pageSize
-	if pageOffsetStart > len(keys) {
-		return nil, responds.NewNotFoundError("page not found")
+	pageOffsetStart, pageOffsetEnd, err := redis.GetPageRangeForStrings(keys, pageSize, pageNumber)
+	if err != nil {
+		return nil, responds.NewNotFoundError(err.Error())
 	}
 
 	keysPage := keys[pageOffsetStart:pageOffsetEnd]
@@ -224,8 +220,8 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
 	}
 
-	pageParam := requestParams["page"]
-	pageNum := 0
+	pageParam := r.URL.Query().Get("page")
+	pageNum := 1
 	if len(pageParam) != 0 {
 		if parsedPageParam, err := strconv.ParseInt(pageParam, 0, 0); err == nil {
 			pageNum = int(parsedPageParam)

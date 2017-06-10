@@ -11,6 +11,7 @@ type Msg = NoOp
   | KeysMaskChanged String
   | KeysPageChanged Int
   | KeyChosen RedisKey
+  | ValuesPageChanged Int
   | KeyValuesLoaded (Result Http.Error LoadedValues)
   | KeyDeletionConfirm RedisKey
   | KeyDeletionConfirmed RedisKey

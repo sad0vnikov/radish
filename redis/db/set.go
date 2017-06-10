@@ -3,6 +3,7 @@ package db
 import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/sad0vnikov/radish/logger"
+	rd "github.com/sad0vnikov/radish/redis"
 )
 
 //SetKey is a redis SET key
@@ -42,18 +43,23 @@ func (key SetKey) Values(pageNum int, pageSize int) (interface{}, error) {
 	}
 
 	var (
-		cursor int64
 		values []string
 	)
 
-	r, err := redis.Values(conn.Do("SSCAN", key.key, pageNum*pageSize, "COUNT", pageSize))
-	r, err = redis.Scan(r, &cursor, &values)
+	r, err := conn.Do("SMEMBERS", key.key)
+	values, err = redis.Strings(r, err)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
+	offsetStart, offsetEnd, err := rd.GetPageRangeForStrings(values, pageSize, pageNum)
 
-	return values, nil
+	if err != nil {
+		return nil, err
+	}
+	valuesPage := values[offsetStart:offsetEnd]
+
+	return valuesPage, nil
 }
 
 //AddValueToSet adds a new member to a set

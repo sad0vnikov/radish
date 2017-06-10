@@ -45,8 +45,8 @@ func (key ListKey) Values(pageNum, pageSize int) (interface{}, error) {
 		return 0, err
 	}
 
-	pageStart := pageNum * pageSize
-	pageEnd := (pageNum + 1) * pageSize
+	pageStart := (pageNum - 1) * pageSize
+	pageEnd := pageNum*pageSize - 1
 	r, err := conn.Do("LRANGE", key.key, pageStart, pageEnd)
 	strings, err := redis.Strings(r, err)
 
@@ -58,7 +58,7 @@ func (key ListKey) Values(pageNum, pageSize int) (interface{}, error) {
 	var values = make([]ListMember, len(strings))
 	memberIndex := pageStart
 	for i, v := range strings {
-		values[i] = ListMember{Value: v, Index: i}
+		values[i] = ListMember{Value: v, Index: memberIndex}
 		memberIndex++
 	}
 
