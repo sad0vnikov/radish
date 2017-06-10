@@ -35,7 +35,9 @@ navbar model =
     nav [ class "navbar navbar-default" ] [
         div [ class "container-fluid" ] [
             div [ class "navbar-header" ] [
-              a [class "navbar-brand", href "#", onClick LogoClick] [ text "Radish" ]
+              a [id "logo", class "navbar-brand", href "#", onClick LogoClick] [ 
+                img [src "static/img/logo.png", alt "Radish"] []
+              ]
             ],
             ul [ class "navbar-right nav navbar-nav" ] [
               li [ class "dropdown" ] [

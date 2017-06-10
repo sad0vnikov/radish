@@ -11,6 +11,17 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
     word-break: break-all;
 }
 
+#logo {
+
+    padding: 7px;
+
+    img {
+        width: 90px;
+        height: 35px;
+    }    
+}
+
+
 table.hash-values,
 table.set-values,
 table.zset-values,
