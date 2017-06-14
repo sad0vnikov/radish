@@ -1,5 +1,5 @@
 # Radish
-*v0.2.0*
+*v0.2.1*
 
 Radish is a simple and powerful Redis GUI administration panel
 
