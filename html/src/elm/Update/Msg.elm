@@ -1,6 +1,7 @@
 module Update.Msg exposing (Msg(..))
 
 import Http
+import Window
 import Dict exposing (Dict)
 import Model.Model exposing (LoadedKeys, Server, RedisKey, RedisValue, StringRedisValue, LoadedValues, KeyType, KeysTreeNode(..), LoadedKeysSubtree, CollapsedKeysTreeNodeInfo, UnfoldKeysTreeNodeInfo)
 
@@ -48,3 +49,4 @@ type Msg = NoOp
   | LogoClick
   | AboutWindowOpen
   | AboutWindowClose
+  | WindowResized (Int, Int)

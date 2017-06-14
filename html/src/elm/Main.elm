@@ -9,6 +9,9 @@ import Update.Msg exposing (Msg(..))
 import Flags exposing (Flags)
 import Command.Servers exposing (getServersList)
 import View.ConfirmationDialog exposing (..)
+import Task
+import Window
+
 
 main : Program Flags Model Msg
 main =
@@ -17,13 +20,15 @@ main =
 
 subscriptions : Model -> Sub Msg
 subscriptions model = 
-  dialogClosed (\s -> 
+  Sub.batch [
+    dialogClosed (\s -> 
       case s of
         "ok" ->
           UserConfirmation
         _ ->
           UserConfirmationCancel
     )
+  ]
 
 
 init : Flags -> (Model, Cmd Msg)
@@ -31,4 +36,8 @@ init flags =
   let
     model = initModel flags
   in
-    (model, getServersList model)
+    (model, Cmd.batch [getServersList model, Task.perform windowSizeToMsg Window.size])
+
+windowSizeToMsg : Window.Size -> Msg
+windowSizeToMsg size = 
+  WindowResized (size.width, size.height)

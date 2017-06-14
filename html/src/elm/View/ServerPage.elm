@@ -106,7 +106,7 @@ drawListKeysPanel model =
           ]
         ]   
     ],
-    div [class "panel-body"] [
+    div [class "panel-body keys-list", attribute "style" (keysListHeightAttribute model)] [
         div [class "list-group"]
           (List.map (\key ->
             a [
@@ -129,7 +129,7 @@ drawTreeKeysPanel model =
         ],
         div [class "clearfix"] []
     ],
-    div [class "panel-body"] [
+    div [class "panel-body keys-list", attribute "style" (keysListHeightAttribute model)] [
       div [] [
         div [class "pull-right"] [
           drawKeysActionsButton model
@@ -139,6 +139,10 @@ drawTreeKeysPanel model =
         (drawKeysTreeBranch model model.loadedKeysTree)
     ]
   ]
+
+keysListHeightAttribute : Model -> String
+keysListHeightAttribute model =
+  "height:" ++ (toString <| toFloat model.windowSize.height * 0.75) ++ "px;"
 
 drawKeysActionsButton : Model -> Html Msg
 drawKeysActionsButton model =

@@ -13,6 +13,11 @@ type alias Model = {
     url: String
   },
 
+  windowSize: {
+    width: Int,
+    height: Int
+  },
+
   loadedServers: LoadedServers,
   loadedKeys: LoadedKeys,
   loadedKeysTree: LoadedKeysSubtree,
@@ -165,6 +170,7 @@ initModel flags =
       pagesCount = 0,
       currentPage = 1
     },
+    windowSize = {width = 0, height = 0},
     loadedKeysTree = emptyKeysSubtree [],
     loadedValues = SingleRedisValue <| RedisValue "" StringRedisKey,
     keysMask = "",

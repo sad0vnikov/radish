@@ -21,6 +21,10 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
     }    
 }
 
+.keys-list {
+    overflow-y: scroll;
+}
+
 
 table.hash-values,
 table.set-values,

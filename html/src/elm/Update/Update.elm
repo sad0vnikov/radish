@@ -12,6 +12,8 @@ import View.ConfirmationDialog exposing (..)
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
+    WindowResized (width, height) ->
+      ({model | windowSize = {width = width, height = height}}, Cmd.none)
     ChosenServer server ->
       let
         updatedModel = {model | chosenServer = Just server}
