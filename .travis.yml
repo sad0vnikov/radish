@@ -1,0 +1,28 @@
+language: go
+
+go:
+  - 1.8.x
+
+services:
+  - docker
+
+cache:
+  directories:
+    - html/node_modules
+
+before_install:
+  - nvm install 6.0.0
+
+script:
+  - go test ./...
+  - cd html && npm install && npm run build
+  - docker build -t sad0vnikov/radish -t sad0vnikov/radish:$(cat VERSION) .
+
+after_success:
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+    docker push sad0vnikov/radish
+    docker push sad0vnikov/radish:$(cat VERSION)
+    fi
+
+sudo: required
