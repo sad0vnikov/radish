@@ -15,8 +15,8 @@ before_install:
 
 script:
   - go test ./...
-  - cd html && npm install && npm run build
-  - docker build -t sad0vnikov/radish -t sad0vnikov/radish:$(cat VERSION) .
+  - cd html && npm run reinstall && npm run build
+  - cd $TRAVIS_BUILD_DIR && docker build -t sad0vnikov/radish -t sad0vnikov/radish:$(cat VERSION) .
 
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
