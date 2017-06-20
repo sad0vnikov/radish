@@ -15,6 +15,7 @@ before_install:
 
 script:
   - go test ./...
+  - GOOS=linux go build
   - cd html && npm run reinstall && npm run build
   - cd $TRAVIS_BUILD_DIR && docker build -t sad0vnikov/radish -t sad0vnikov/radish:$(cat VERSION) .
 
