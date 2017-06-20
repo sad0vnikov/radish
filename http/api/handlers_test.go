@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/sad0vnikov/radish/config"
+	"github.com/sad0vnikov/radish/http/responds"
 	"github.com/sad0vnikov/radish/redis"
 )
 
@@ -17,7 +18,10 @@ func TestGettingServersList(t *testing.T) {
 	req := httptest.NewRequest("GET", "/v1/servers", nil)
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(GetServersList)
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp, _ := GetServersList(w, r)
+		responds.RespondJSON(w, resp)
+	})
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {

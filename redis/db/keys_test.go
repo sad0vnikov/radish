@@ -62,11 +62,11 @@ func TestGettingChildrenFromKeys(t *testing.T) {
 	result := getChildrenFromKeys(keys, keysMask, delimiter)
 
 	expectedResult := []KeyTreeNode{
-		KeyTreeNode{Name: "a", HasChildren: false},
-		KeyTreeNode{Name: "b", HasChildren: false},
-		KeyTreeNode{Name: "c", HasChildren: false},
-		KeyTreeNode{Name: "d", HasChildren: false},
-		KeyTreeNode{Name: "e", HasChildren: false},
+		KeyTreeNode{Name: "a", Key: "a", HasChildren: false},
+		KeyTreeNode{Name: "b", Key: "b", HasChildren: false},
+		KeyTreeNode{Name: "c", Key: "c", HasChildren: false},
+		KeyTreeNode{Name: "d", Key: "d", HasChildren: false},
+		KeyTreeNode{Name: "e", Key: "e", HasChildren: false},
 	}
 
 	if err := compareTreeNodeSlices(result, expectedResult); err != nil {
@@ -80,11 +80,11 @@ func TestGettingChildrenFromKeys(t *testing.T) {
 	result = getChildrenFromKeys(keys, keysMask, delimiter)
 
 	expectedResult = []KeyTreeNode{
-		KeyTreeNode{Name: "a", HasChildren: true},
-		KeyTreeNode{Name: "b", HasChildren: false},
-		KeyTreeNode{Name: "c", HasChildren: false},
-		KeyTreeNode{Name: "d", HasChildren: true},
-		KeyTreeNode{Name: "e", HasChildren: false},
+		KeyTreeNode{Name: "a", Key: "", HasChildren: true},
+		KeyTreeNode{Name: "b", Key: "b", HasChildren: false},
+		KeyTreeNode{Name: "c", Key: "c", HasChildren: false},
+		KeyTreeNode{Name: "d", Key: "", HasChildren: true},
+		KeyTreeNode{Name: "e", Key: "e", HasChildren: false},
 	}
 
 	if err := compareTreeNodeSlices(result, expectedResult); err != nil {
@@ -112,8 +112,8 @@ func TestGettingChildrenFromKeys(t *testing.T) {
 	result = getChildrenFromKeys(keys, keysMask, delimiter)
 
 	expectedResult = []KeyTreeNode{
-		KeyTreeNode{Name: "f", HasChildren: false},
-		KeyTreeNode{Name: "e", HasChildren: false},
+		KeyTreeNode{Name: "f", Key: "f", HasChildren: false},
+		KeyTreeNode{Name: "e", Key: "e", HasChildren: false},
 	}
 
 	if err := compareTreeNodeSlices(result, expectedResult); err != nil {
@@ -136,12 +136,19 @@ func compareTreeNodeSlices(a, b []KeyTreeNode) error {
 	}
 
 	for len(a) != len(b) {
-		return fmt.Errorf("the slices %v and %v are different", a, b)
+		return fmt.Errorf("the slices %v and %v have different length", a, b)
 	}
 
 	for i := range a {
-		if a[i].HasChildren != b[i].HasChildren || a[i].Name != b[i].Name {
-			return errors.New("elements #" + string(i) + " are different in lists")
+		prs := false
+		for j := range b {
+			if a[i].HasChildren == b[j].HasChildren && a[i].Name == b[j].Name {
+				prs = true
+				break
+			}
+		}
+		if !prs {
+			return fmt.Errorf("element: %#v not found in list %#v", a[i], b)
 		}
 	}
 
