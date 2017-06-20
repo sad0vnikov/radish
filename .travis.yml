@@ -11,7 +11,7 @@ cache:
     - html/node_modules
 
 before_install:
-  - nvm install 6.0.0
+  - nvm install 6.9.4
 
 script:
   - go test ./...
@@ -20,6 +20,7 @@ script:
 
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    cd $TRAVIS_BUILD_DIR
     docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
     docker push sad0vnikov/radish
     docker push sad0vnikov/radish:$(cat VERSION)
