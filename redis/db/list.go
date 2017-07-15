@@ -9,6 +9,7 @@ import (
 type ListKey struct {
 	key        string
 	serverName string
+	dbNum      uint8
 }
 
 //ListMember represents List member value
@@ -24,7 +25,7 @@ func (key ListKey) KeyType() string {
 
 //PagesCount returns List values pages count
 func (key ListKey) PagesCount(pageSize int) (int, error) {
-	conn, err := connector.GetByName(key.serverName)
+	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return 0, err
 	}
@@ -40,7 +41,7 @@ func (key ListKey) PagesCount(pageSize int) (int, error) {
 
 //Values returns redis List values page
 func (key ListKey) Values(pageNum, pageSize int) (interface{}, error) {
-	conn, err := connector.GetByName(key.serverName)
+	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return 0, err
 	}
@@ -69,8 +70,8 @@ func (key ListKey) Values(pageNum, pageSize int) (interface{}, error) {
 //InsertToListWithPos inserts a value at the given position
 //If there are values after the given index, they are moved to the right
 //If position greater then the last list index, the value will be added to the and of the list
-func InsertToListWithPos(serverName, key, listValue string, position int) error {
-	conn, err := connector.GetByName(serverName)
+func InsertToListWithPos(serverName string, dbNum uint8, key, listValue string, position int) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return err
 	}
@@ -97,8 +98,8 @@ func InsertToListWithPos(serverName, key, listValue string, position int) error 
 }
 
 //AppendToList appends a value to the end of list
-func AppendToList(serverName, key, listValue string) error {
-	conn, err := connector.GetByName(serverName)
+func AppendToList(serverName string, dbNum uint8, key, listValue string) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return err
 	}
@@ -113,8 +114,8 @@ func AppendToList(serverName, key, listValue string) error {
 }
 
 //UpdateListValue updates a list Value by index
-func UpdateListValue(serverName, key string, index int, newValue string) error {
-	conn, err := connector.GetByName(serverName)
+func UpdateListValue(serverName string, dbNum uint8, key string, index int, newValue string) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return err
 	}
@@ -129,8 +130,8 @@ func UpdateListValue(serverName, key string, index int, newValue string) error {
 }
 
 //DeleteListValue removes List member
-func DeleteListValue(serverName, key string, index int) error {
-	conn, err := connector.GetByName(serverName)
+func DeleteListValue(serverName string, dbNum uint8, key string, index int) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return err
 	}

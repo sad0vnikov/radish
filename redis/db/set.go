@@ -9,6 +9,7 @@ import (
 //SetKey is a redis SET key
 type SetKey struct {
 	serverName string
+	dbNum      uint8
 	key        string
 }
 
@@ -19,7 +20,7 @@ func (key SetKey) KeyType() string {
 
 //PagesCount returns Redis SET values pages count
 func (key SetKey) PagesCount(pageSize int) (int, error) {
-	conn, err := connector.GetByName(key.serverName)
+	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return 0, err
 	}
@@ -36,7 +37,7 @@ func (key SetKey) PagesCount(pageSize int) (int, error) {
 
 //Values returns a SET values page
 func (key SetKey) Values(pageNum int, pageSize int) (interface{}, error) {
-	conn, err := connector.GetByName(key.serverName)
+	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -71,8 +72,8 @@ func (key SetKey) Values(pageNum int, pageSize int) (interface{}, error) {
 }
 
 //AddValueToSet adds a new member to a set
-func AddValueToSet(serverName, key, value string) error {
-	conn, err := connector.GetByName(serverName)
+func AddValueToSet(serverName string, dbNum uint8, key, value string) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return err
 	}
@@ -87,13 +88,13 @@ func AddValueToSet(serverName, key, value string) error {
 }
 
 //UpdateSetValue updates a set member
-func UpdateSetValue(serverName, key, value, newValue string) error {
-	err := DeleteSetValue(serverName, key, value)
+func UpdateSetValue(serverName string, dbNum uint8, key, value, newValue string) error {
+	err := DeleteSetValue(serverName, dbNum, key, value)
 	if err != nil {
 		return err
 	}
 
-	err = AddValueToSet(serverName, key, newValue)
+	err = AddValueToSet(serverName, dbNum, key, newValue)
 	if err != nil {
 		return err
 	}
@@ -101,8 +102,8 @@ func UpdateSetValue(serverName, key, value, newValue string) error {
 }
 
 //DeleteSetValue removes a set member
-func DeleteSetValue(serverName, key, value string) error {
-	conn, err := connector.GetByName(serverName)
+func DeleteSetValue(serverName string, dbNum uint8, key, value string) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return err
 	}

@@ -10,12 +10,13 @@ import (
 //StringKey is a key with redis String value
 type StringKey struct {
 	serverName string
+	dbNum      uint8
 	key        string
 }
 
 //Values returns StringKey values
-func (key StringKey) Values(pageNum, pageSize int) (interface{}, error) {
-	return getStringKeyValue(key.serverName, key.key)
+func (key StringKey) Values(pageNum int, pageSize int) (interface{}, error) {
+	return getStringKeyValue(key.serverName, key.dbNum, key.key)
 }
 
 //PagesCount returns StringKey pages count
@@ -29,8 +30,8 @@ func (StringKey) KeyType() string {
 }
 
 //Set sets string value
-func Set(serverName, key, value string) error {
-	conn, err := connector.GetByName(serverName)
+func Set(serverName string, dbNum uint8, key, value string) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		logger.Critical(err)
 		return err
@@ -46,8 +47,8 @@ func Set(serverName, key, value string) error {
 }
 
 //GetStringKeyValue returns a value for STRING type object
-func getStringKeyValue(serverName, key string) (RedisValue, error) {
-	conn, err := connector.GetByName(serverName)
+func getStringKeyValue(serverName string, dbNum uint8, key string) (RedisValue, error) {
+	conn, err := connector.GetByName(serverName, dbNum)
 
 	if err != nil {
 		return RedisValue{}, fmt.Errorf("can't connect to server %v", serverName)

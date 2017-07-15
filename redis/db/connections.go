@@ -11,7 +11,7 @@ import (
 
 //Connections is an interface for objects storing Redis connections
 type Connections interface {
-	GetByName(serverName string) (redis.Conn, error)
+	GetByName(serverName string, dbNum uint8) (redis.Conn, error)
 }
 
 //RedisConnections is a struct storing redis connection
@@ -20,7 +20,7 @@ type RedisConnections struct {
 }
 
 //GetByName function returns redigo Redis connection instance by server name
-func (connections RedisConnections) GetByName(serverName string) (redis.Conn, error) {
+func (connections RedisConnections) GetByName(serverName string, dbNum uint8) (redis.Conn, error) {
 	server, prs := config.Get().Servers[serverName]
 	if !prs {
 		return nil, errors.New("no server with name " + serverName + " found")
@@ -39,7 +39,11 @@ func (connections RedisConnections) GetByName(serverName string) (redis.Conn, er
 		}
 	}
 
-	return connections.pool.Get(), nil
+	var c redis.Conn
+	c = connections.pool.Get()
+	c.Do("SELECT", dbNum)
+
+	return c, nil
 }
 
 //MockedConnections is a struct storing mocked redis connections

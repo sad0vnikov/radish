@@ -52,9 +52,9 @@ func init() {
 }
 
 //FindKeysByMask returns a list of keys satisfyig mask
-func FindKeysByMask(serverName, mask string) ([]string, error) {
+func FindKeysByMask(serverName string, dbNum uint8, mask string) ([]string, error) {
 
-	conn, err := connector.GetByName(serverName)
+	conn, err := connector.GetByName(serverName, dbNum)
 
 	if err != nil {
 		return nil, err
@@ -70,13 +70,13 @@ func FindKeysByMask(serverName, mask string) ([]string, error) {
 }
 
 //FindKeysTreeNodeChildren returns the first generation of children for given keys tree node
-func FindKeysTreeNodeChildren(serverName, delimiter string, pageSize int32, node KeyTreeNode) ([]KeyTreeNode, error) {
+func FindKeysTreeNodeChildren(serverName string, dbNum uint8, delimiter string, pageSize int32, node KeyTreeNode) ([]KeyTreeNode, error) {
 	var maskForSearch = node.Name
 	if maskForSearch != "*" {
 		maskForSearch = maskForSearch + delimiter + "*"
 	}
 
-	conn, err := connector.GetByName(serverName)
+	conn, err := connector.GetByName(serverName, dbNum)
 
 	if err != nil {
 		return nil, err
@@ -134,8 +134,8 @@ func getChildrenFromKeys(keys []string, maskForSearch, delimiter string) []KeyTr
 }
 
 //KeyExists returns True if given Redis key exists
-func KeyExists(serverName, key string) (bool, error) {
-	conn, err := connector.GetByName(serverName)
+func KeyExists(serverName string, dbNum uint8, key string) (bool, error) {
+	conn, err := connector.GetByName(serverName, dbNum)
 
 	if err != nil {
 		logger.Error(err)
@@ -154,9 +154,9 @@ func KeyExists(serverName, key string) (bool, error) {
 }
 
 //GetKeyInfo returns given key info
-func GetKeyInfo(serverName, key string) (Key, error) {
+func GetKeyInfo(serverName string, dbNum uint8, key string) (Key, error) {
 
-	conn, err := connector.GetByName(serverName)
+	conn, err := connector.GetByName(serverName, dbNum)
 
 	if err != nil {
 		logger.Critical(err)
@@ -172,23 +172,23 @@ func GetKeyInfo(serverName, key string) (Key, error) {
 	keyType, err := redis.String(result, err)
 	switch keyType {
 	case "string":
-		return StringKey{serverName: serverName, key: key}, nil
+		return StringKey{serverName: serverName, dbNum: dbNum, key: key}, nil
 	case "list":
-		return ListKey{serverName: serverName, key: key}, nil
+		return ListKey{serverName: serverName, dbNum: dbNum, key: key}, nil
 	case "hash":
-		return HashKey{serverName: serverName, key: key}, nil
+		return HashKey{serverName: serverName, dbNum: dbNum, key: key}, nil
 	case "set":
-		return SetKey{serverName: serverName, key: key}, nil
+		return SetKey{serverName: serverName, dbNum: dbNum, key: key}, nil
 	case "zset":
-		return ZSetKey{serverName: serverName, key: key}, nil
+		return ZSetKey{serverName: serverName, dbNum: dbNum, key: key}, nil
 	}
 
 	return nil, errors.New("get unknown redis object type")
 }
 
 //DeleteKey deletes a given key
-func DeleteKey(serverName, key string) error {
-	conn, err := connector.GetByName(serverName)
+func DeleteKey(serverName string, dbNum uint8, key string) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		logger.Critical(err)
 		return err

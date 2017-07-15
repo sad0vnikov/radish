@@ -9,6 +9,7 @@ import (
 type HashKey struct {
 	key        string
 	serverName string
+	dbNum      uint8
 }
 
 //KeyType returns Hash key type
@@ -18,7 +19,7 @@ func (key HashKey) KeyType() string {
 
 //PagesCount returns Hash key values pages count
 func (key HashKey) PagesCount(pageSize int) (int, error) {
-	conn, err := connector.GetByName(key.serverName)
+	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return 0, err
 	}
@@ -35,7 +36,7 @@ func (key HashKey) PagesCount(pageSize int) (int, error) {
 
 //Values returns Hash key Values page
 func (key HashKey) Values(pageNum int, pageSize int) (interface{}, error) {
-	conn, err := connector.GetByName(key.serverName)
+	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +73,9 @@ func (key HashKey) Values(pageNum int, pageSize int) (interface{}, error) {
 }
 
 //HashKeyExists Hash has given key
-func HashKeyExists(serverName, key, hashKey string) (bool, error) {
+func HashKeyExists(serverName string, dbNum uint8, key, hashKey string) (bool, error) {
 
-	conn, err := connector.GetByName(serverName)
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return false, err
 	}
@@ -90,8 +91,8 @@ func HashKeyExists(serverName, key, hashKey string) (bool, error) {
 }
 
 //SetHashKey sets a hash value
-func SetHashKey(serverName, key, hashKey, hashValue string) error {
-	conn, err := connector.GetByName(serverName)
+func SetHashKey(serverName string, dbNum uint8, key, hashKey, hashValue string) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return err
 	}
@@ -105,8 +106,8 @@ func SetHashKey(serverName, key, hashKey, hashValue string) error {
 }
 
 //DeleteHashValue deletes a Hash value
-func DeleteHashValue(serverName, key, hashKey string) error {
-	conn, err := connector.GetByName(serverName)
+func DeleteHashValue(serverName string, dbNum uint8, key, hashKey string) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return err
 	}

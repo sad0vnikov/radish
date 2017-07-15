@@ -44,6 +44,9 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) (interface{}, error) 
 	if len(serverName) == 0 {
 		return nil, responds.NewBadRequestError("'server' param is mandatory")
 	}
+	var dbNum uint8
+	dbNum, err := GetParamUint8("db", r)
+
 	mask := r.URL.Query().Get("mask")
 	if len(mask) == 0 {
 		mask = "*"
@@ -59,7 +62,7 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) (interface{}, error) 
 
 	}
 
-	keys, err := db.FindKeysByMask(serverName, mask)
+	keys, err := db.FindKeysByMask(serverName, dbNum, mask)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -92,13 +95,15 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	if len(serverName) == 0 {
 		return nil, responds.NewBadRequestError("'server' param is mandatory")
 	}
+	var dbNum uint8
+	dbNum, err := GetParamUint8("db", r)
 
 	keyName := requestParams["key"]
 	if len(keyName) == 0 {
 		return nil, responds.NewBadRequestError("'key' param is mandatory")
 	}
 
-	keyExists, err := db.KeyExists(serverName, keyName)
+	keyExists, err := db.KeyExists(serverName, dbNum, keyName)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +111,7 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
 	}
 
-	key, err := db.GetKeyInfo(serverName, keyName)
+	key, err := db.GetKeyInfo(serverName, dbNum, keyName)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -139,6 +144,9 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		return nil, responds.NewBadRequestError("'server' param is mandatory")
 	}
 
+	var dbNum uint8
+	dbNum, err := GetParamUint8("db", r)
+
 	pathURI := r.URL.Query().Get("path")
 	path := strings.Split(pathURI, "/")
 	if pathURI == "" {
@@ -154,7 +162,7 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		keyPrefix = "*"
 	}
 	node := db.KeyTreeNode{Name: keyPrefix, HasChildren: true}
-	nodes, err := db.FindKeysTreeNodeChildren(serverName, delimiter, pageSize, node)
+	nodes, err := db.FindKeysTreeNodeChildren(serverName, dbNum, delimiter, pageSize, node)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -206,13 +214,15 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	if len(serverName) == 0 {
 		return nil, responds.NewBadRequestError("'server' param is required")
 	}
+	var dbNum uint8
+	dbNum, err := GetParamUint8("db", r)
 
 	keyName := requestParams["key"]
 	if len(keyName) == 0 {
 		return nil, responds.NewBadRequestError("'key' param is required")
 	}
 
-	keyExists, err := db.KeyExists(serverName, keyName)
+	keyExists, err := db.KeyExists(serverName, dbNum, keyName)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +238,7 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		}
 	}
 
-	key, err := db.GetKeyInfo(serverName, keyName)
+	key, err := db.GetKeyInfo(serverName, dbNum, keyName)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -327,13 +337,15 @@ func DeleteKey(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	if len(serverName) == 0 {
 		return nil, responds.NewBadRequestError("'server' param is required")
 	}
+	var dbNum uint8
+	dbNum, err := GetParamUint8("db", r)
 
 	keyName := requestParams["key"]
 	if len(keyName) == 0 {
 		return nil, responds.NewBadRequestError("'key' param is required")
 	}
 
-	err := db.DeleteKey(serverName, keyName)
+	err = db.DeleteKey(serverName, dbNum, keyName)
 	if err != nil {
 		return nil, err
 	}
@@ -351,6 +363,9 @@ func AddStringValue(w http.ResponseWriter, r *http.Request) (interface{}, error)
 	if err != nil {
 		return nil, responds.NewBadRequestError(err.Error())
 	}
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+
 	serverName := GetParam("server", r)
 	keyName := GetParam("key", r)
 
@@ -365,7 +380,7 @@ func AddStringValue(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
 
-	ex, err := db.KeyExists(serverName, keyName)
+	ex, err := db.KeyExists(serverName, dbNum, keyName)
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +389,7 @@ func AddStringValue(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		return nil, responds.NewConflictError(fmt.Sprintf("key %v already exists", keyName))
 	}
 
-	err = db.Set(serverName, keyName, bodyReq.Value)
+	err = db.Set(serverName, dbNum, keyName, bodyReq.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -392,6 +407,9 @@ func UpdateStringValue(w http.ResponseWriter, r *http.Request) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+
 	decoder := json.NewDecoder(r.Body)
 	var JSONReq updateStringRequest
 	err = decoder.Decode(&JSONReq)
@@ -403,7 +421,7 @@ func UpdateStringValue(w http.ResponseWriter, r *http.Request) (interface{}, err
 	serverName := GetParam("server", r)
 	keyName := GetParam("key", r)
 
-	ex, err := db.KeyExists(serverName, keyName)
+	ex, err := db.KeyExists(serverName, dbNum, keyName)
 	if err != nil {
 		return nil, err
 	}
@@ -414,7 +432,7 @@ func UpdateStringValue(w http.ResponseWriter, r *http.Request) (interface{}, err
 	if len(JSONReq.Value) == 0 {
 		return nil, responds.NewBadRequestError("`Value` JSON param is missing")
 	}
-	err = db.Set(serverName, keyName, JSONReq.Value)
+	err = db.Set(serverName, dbNum, keyName, JSONReq.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -434,6 +452,9 @@ func AddHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, responds.NewBadRequestError(err.Error())
 	}
 	serverName := GetParam("server", r)
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+
 	keyName := GetParam("key", r)
 
 	decoder := json.NewDecoder(r.Body)
@@ -453,7 +474,7 @@ func AddHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	hashKey := bodyReq.Key
 	hashValue := bodyReq.Value
 
-	ex, err := db.HashKeyExists(serverName, keyName, hashKey)
+	ex, err := db.HashKeyExists(serverName, dbNum, keyName, hashKey)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -463,7 +484,7 @@ func AddHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, responds.NewConflictError(fmt.Sprintf("key %v already exists", keyName))
 	}
 
-	err = db.SetHashKey(serverName, keyName, hashKey, hashValue)
+	err = db.SetHashKey(serverName, dbNum, keyName, hashKey, hashValue)
 	if err != nil {
 		return nil, err
 	}
@@ -482,6 +503,9 @@ func UpdateHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 		return nil, responds.NewBadRequestError(err.Error())
 	}
 	serverName := GetParam("server", r)
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+
 	keyName := GetParam("key", r)
 	hashKey := GetParam("hashKey", r)
 
@@ -497,7 +521,7 @@ func UpdateHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 	}
 	hashValue := bodyReq.Value
 
-	ex, err := db.HashKeyExists(serverName, keyName, hashKey)
+	ex, err := db.HashKeyExists(serverName, dbNum, keyName, hashKey)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -507,7 +531,7 @@ func UpdateHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
 	}
 
-	err = db.SetHashKey(serverName, keyName, hashKey, hashValue)
+	err = db.SetHashKey(serverName, dbNum, keyName, hashKey, hashValue)
 	if err != nil {
 		return nil, err
 	}
@@ -522,10 +546,13 @@ func DeleteHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 		return nil, responds.NewBadRequestError(err.Error())
 	}
 	serverName := GetParam("server", r)
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+
 	keyName := GetParam("key", r)
 	hashKey := GetParam("hashKey", r)
 
-	ex, err := db.HashKeyExists(serverName, keyName, hashKey)
+	ex, err := db.HashKeyExists(serverName, dbNum, keyName, hashKey)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -535,7 +562,7 @@ func DeleteHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
 	}
 
-	err = db.DeleteHashValue(serverName, keyName, hashKey)
+	err = db.DeleteHashValue(serverName, dbNum, keyName, hashKey)
 	if err != nil {
 		return nil, err
 	}
@@ -566,10 +593,12 @@ func AddListValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
 
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
 	if bodyReq.Index != nil {
-		err = db.InsertToListWithPos(GetParam("server", r), GetParam("key", r), bodyReq.Value, *bodyReq.Index)
+		err = db.InsertToListWithPos(GetParam("server", r), dbNum, GetParam("key", r), bodyReq.Value, *bodyReq.Index)
 	} else {
-		err = db.AppendToList(GetParam("server", r), GetParam("key", r), bodyReq.Value)
+		err = db.AppendToList(GetParam("server", r), dbNum, GetParam("key", r), bodyReq.Value)
 	}
 
 	if err != nil {
@@ -612,7 +641,9 @@ func UpdateListValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
 
-	err = db.UpdateListValue(GetParam("server", r), GetParam("key", r), int(index), bodyReq.Value)
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+	err = db.UpdateListValue(GetParam("server", r), dbNum, GetParam("key", r), int(index), bodyReq.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -638,7 +669,9 @@ func DeleteListValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 		return nil, responds.NewBadRequestError("'index' is too large")
 	}
 
-	err = db.DeleteListValue(GetParam("server", r), GetParam("key", r), int(index))
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+	err = db.DeleteListValue(GetParam("server", r), dbNum, GetParam("key", r), int(index))
 	if err != nil {
 		return nil, err
 	}
@@ -667,7 +700,10 @@ func AddSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	if len(bodyReq.Value) == 0 {
 		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
-	err = db.AddValueToSet(GetParam("server", r), GetParam("key", r), bodyReq.Value)
+
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+	err = db.AddValueToSet(GetParam("server", r), dbNum, GetParam("key", r), bodyReq.Value)
 	if err != nil {
 		return "", err
 	}
@@ -697,7 +733,9 @@ func UpdateSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
 
-	err = db.UpdateSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r), bodyReq.Value)
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+	err = db.UpdateSetValue(GetParam("server", r), dbNum, GetParam("key", r), GetParam("value", r), bodyReq.Value)
 	if err != nil {
 		return "", err
 	}
@@ -712,7 +750,9 @@ func DeleteSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error)
 		return nil, err
 	}
 
-	err = db.DeleteSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r))
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+	err = db.DeleteSetValue(GetParam("server", r), dbNum, GetParam("key", r), GetParam("value", r))
 	if err != nil {
 		return "", err
 	}
@@ -743,7 +783,9 @@ func AddZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
 
-	err = db.AddZSetValue(GetParam("server", r), GetParam("key", r), bodyReq.Value, bodyReq.Score)
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+	err = db.AddZSetValue(GetParam("server", r), dbNum, GetParam("key", r), bodyReq.Value, bodyReq.Score)
 	if err != nil {
 		return nil, err
 	}
@@ -773,7 +815,10 @@ func UpdateZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 	if len(bodyReq.Value) == 0 {
 		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
-	err = db.UpdateZSetValueIfExists(GetParam("server", r), GetParam("key", r), GetParam("value", r), bodyReq.Value, bodyReq.Score)
+
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+	err = db.UpdateZSetValueIfExists(GetParam("server", r), dbNum, GetParam("key", r), GetParam("value", r), bodyReq.Value, bodyReq.Score)
 	if err != nil {
 		return nil, err
 	}
@@ -788,7 +833,9 @@ func DeleteZSetValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 		return nil, err
 	}
 
-	err = db.DeleteZSetValue(GetParam("server", r), GetParam("key", r), GetParam("value", r))
+	var dbNum uint8
+	dbNum, err = GetParamUint8("db", r)
+	err = db.DeleteZSetValue(GetParam("server", r), dbNum, GetParam("key", r), GetParam("value", r))
 	if err != nil {
 		return nil, err
 	}

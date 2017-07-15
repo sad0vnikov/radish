@@ -11,6 +11,7 @@ import (
 //ZSetKey is a Redis ZSET key
 type ZSetKey struct {
 	serverName string
+	dbNum      uint8
 	key        string
 }
 
@@ -27,7 +28,7 @@ func (key ZSetKey) KeyType() string {
 
 //PagesCount returns ZSET key values pages count
 func (key ZSetKey) PagesCount(pageSize int) (int, error) {
-	conn, err := connector.GetByName(key.serverName)
+	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return 0, err
 	}
@@ -43,7 +44,7 @@ func (key ZSetKey) PagesCount(pageSize int) (int, error) {
 
 //Values returns ZSET values page
 func (key ZSetKey) Values(pageNum int, pageSize int) (interface{}, error) {
-	conn, err := connector.GetByName(key.serverName)
+	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +90,8 @@ func (key ZSetKey) Values(pageNum int, pageSize int) (interface{}, error) {
 }
 
 //AddZSetValue adds a new sorted set value if it doesn't exist
-func AddZSetValue(serverName, key, value string, score int64) error {
-	conn, err := connector.GetByName(serverName)
+func AddZSetValue(serverName string, dbNum uint8, key, value string, score int64) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return err
 	}
@@ -105,14 +106,14 @@ func AddZSetValue(serverName, key, value string, score int64) error {
 }
 
 //UpdateZSetValueIfExists updates a ZSet value if it exists
-func UpdateZSetValueIfExists(serverName, key, oldValue, value string, score int64) error {
-	err := DeleteZSetValue(serverName, key, oldValue)
+func UpdateZSetValueIfExists(serverName string, dbNum uint8, key, oldValue, value string, score int64) error {
+	err := DeleteZSetValue(serverName, dbNum, key, oldValue)
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
 
-	err = AddZSetValue(serverName, key, value, score)
+	err = AddZSetValue(serverName, dbNum, key, value, score)
 	if err != nil {
 		logger.Error(err)
 		return err
@@ -122,8 +123,8 @@ func UpdateZSetValueIfExists(serverName, key, oldValue, value string, score int6
 }
 
 //DeleteZSetValue deletes a ZSET member
-func DeleteZSetValue(serverName, key, value string) error {
-	conn, err := connector.GetByName(serverName)
+func DeleteZSetValue(serverName string, dbNum uint8, key, value string) error {
+	conn, err := connector.GetByName(serverName, dbNum)
 	if err != nil {
 		return err
 	}
