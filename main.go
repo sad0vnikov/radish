@@ -23,6 +23,7 @@ func main() {
 
 	server := server.HTTPServer{Port: 8080}
 	server.AddHandler("GET", api.Version()+"/servers", api.GetServersList)
+	server.AddHandler("GET", api.Version()+"/servers/{server}/maxDbNumber", api.GetMaxDbNumber)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys", api.GetKeysByMask)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/info", api.GetKeyInfo)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys/{key}/values", api.GetKeyValues)

@@ -12,6 +12,7 @@ import (
 //Connections is an interface for objects storing Redis connections
 type Connections interface {
 	GetByName(serverName string, dbNum uint8) (redis.Conn, error)
+	GetMaxDbNumsForServer(serverName string) (uint8, error)
 }
 
 //RedisConnections is a struct storing redis connection
@@ -46,6 +47,28 @@ func (connections RedisConnections) GetByName(serverName string, dbNum uint8) (r
 	return c, nil
 }
 
+//GetMaxDbNumsForServer returns a maxium db number for given Redis server
+func (connections RedisConnections) GetMaxDbNumsForServer(serverName string) (uint8, error) {
+	conn, err := connections.GetByName(serverName, 0)
+	if err != nil {
+		return 0, err
+	}
+
+	r, err := conn.Do("CONFIG", "GET", "DATABASES")
+	cfgValues, err := redis.Strings(r, err)
+	if err != nil {
+		return 0, err
+	}
+
+	cnt, err := strconv.ParseUint(cfgValues[1], 10, 8)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return uint8(cnt), nil
+}
+
 //MockedConnections is a struct storing mocked redis connections
 type MockedConnections struct {
 	ConnectionMock redis.Conn
@@ -57,4 +80,12 @@ func (connections MockedConnections) GetByName(serverName string) (redis.Conn, e
 		return nil, errors.New("mock is not set, put your connection mock at ConectionMock struct field")
 	}
 	return connections.ConnectionMock, nil
+}
+
+//GetMaxDbNumsForServer returns max db nums for a mocked connection
+func (connections MockedConnections) GetMaxDbNumsForServer(serverName string) (uint8, error) {
+	if connections.ConnectionMock == nil {
+		return 0, errors.New("mock is not set, put your connection mock at ConectionMock struct field")
+	}
+	return uint8(8), nil
 }

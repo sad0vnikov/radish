@@ -32,6 +32,23 @@ type getKeysByMaskResponse struct {
 
 const defaultPageSize = 100
 
+//GetMaxDbNumber is a handler used to get a maxium db number value for given server name
+func GetMaxDbNumber(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	err := CheckRequiredParams([]string{"server"}, r)
+	if err != nil {
+		return nil, responds.NewBadRequestError(err.Error())
+	}
+
+	serverName := GetParam("server", r)
+	maxConnections, err := db.GetMaxDbNumsForServer(serverName)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	return int(maxConnections), nil
+}
+
 //GetKeysByMask is a http handler returning a JSON list of keys satisfying given mask
 //for server with the name given in 'server' query param
 func GetKeysByMask(w http.ResponseWriter, r *http.Request) (interface{}, error) {
