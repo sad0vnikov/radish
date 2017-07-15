@@ -57,7 +57,15 @@ func (key SetKey) Values(pageNum int, pageSize int) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	valuesPage := values[offsetStart:offsetEnd]
+	valuesPageStrings := values[offsetStart:offsetEnd]
+
+	valuesPage := make([]RedisValue, len(valuesPageStrings))
+	for i, s := range valuesPageStrings {
+		valuesPage[i] = RedisValue{
+			Value:    s,
+			IsBinary: isBinary(s),
+		}
+	}
 
 	return valuesPage, nil
 }

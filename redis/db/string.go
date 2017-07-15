@@ -46,19 +46,23 @@ func Set(serverName, key, value string) error {
 }
 
 //GetStringKeyValue returns a value for STRING type object
-func getStringKeyValue(serverName, key string) (string, error) {
+func getStringKeyValue(serverName, key string) (RedisValue, error) {
 	conn, err := connector.GetByName(serverName)
 
 	if err != nil {
-		return "", fmt.Errorf("can't connect to server %v", serverName)
+		return RedisValue{}, fmt.Errorf("can't connect to server %v", serverName)
 	}
 
 	result, err := conn.Do("GET", key)
 	if err != nil {
 		logger.Error(err)
-		return "", fmt.Errorf("can't get key %v value", key)
+		return RedisValue{}, fmt.Errorf("can't get key %v value", key)
 	}
 
-	value, err := redis.String(result, err)
+	str, err := redis.String(result, err)
+	value := RedisValue{
+		Value:    str,
+		IsBinary: isBinary(str),
+	}
 	return value, err
 }

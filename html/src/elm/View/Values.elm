@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Update.Msg exposing (Msg(..))
 import Html.Events exposing (onClick, onInput)
 import View.Pagination exposing (drawPager)
+import View.Helpers exposing (drawIfFalse)
 
 
 import Model.Model exposing (..)
@@ -87,29 +88,42 @@ drawMultipleRedisValues model key redisValuesPage =
 
 drawSingleRedisValue : Model -> String -> RedisValue -> Html Msg
 drawSingleRedisValue model key redisValue =
-    stringKeyValues model key redisValue.value
+    stringKeyValues model key redisValue
 
+drawIconIfValueIsBinary : Bool -> Html Msg
+drawIconIfValueIsBinary isBinary =
+  if isBinary then
+    span [] [
+      span [class "fa fa-file-image-o"] [],
+      text " "
+    ]
+  else
+    span [] []
  
-stringKeyValues : Model -> String -> StringRedisValue -> Html Msg
+stringKeyValues : Model -> String -> RedisValue -> Html Msg
 stringKeyValues model key value =
   div [] [
     div [class "btn-toolbar"] [
-      button [class "btn btn-sm", onClick <| ValueToEditSelected (value, value)] [
-          i [class "fa fa-edit"] [],
-          text " Edit"
-      ]
+      drawIfFalse value.isBinary <|
+        button [class "btn btn-sm", onClick <| ValueToEditSelected (value.value, value.value)] [
+            i [class "fa fa-edit"] [],
+            text " Edit"
+        ]
     ],
     div [class "top-buffer"] [
         drawValueOrEditField model value
     ]
   ]
 
-drawValueOrEditField : Model -> StringRedisValue -> Html Msg
+
+
+drawValueOrEditField : Model -> RedisValue -> Html Msg
 drawValueOrEditField model value =
   case model.editingValue of
     Nothing ->
       div [class "well break-word"] [
-          text value
+          drawIconIfValueIsBinary value.isBinary,
+          text value.value
       ]
     Just valueToEdit ->
       div[class "row"] [
@@ -117,16 +131,16 @@ drawValueOrEditField model value =
            textarea [class "form-control", onInput EditedValueChanged] [text model.editingValueToSave]
         ],
         div [class "col-md-2"] [
-           button [class "btn btn-sm btn-primary btn-block", onClick <| ValueUpdateInitialized value] [
-             i [class "fa fa-save"] []
-           ],
-           button [class "btn btn-sm btn-default btn-block", onClick ValueEditingCanceled] [
+          button [class "btn btn-sm btn-primary btn-block", onClick <| ValueUpdateInitialized value.value] [
+            i [class "fa fa-save"] []
+          ],
+          button [class "btn btn-sm btn-default btn-block", onClick ValueEditingCanceled] [
              i [class "fa fa-times"] []
-           ]           
+          ]           
         ]
       ]
 
-hashKeyValues : Model -> (Dict String StringRedisValue) -> Int -> Int -> Html Msg
+hashKeyValues : Model -> (Dict String HashRedisValue) -> Int -> Int -> Html Msg
 hashKeyValues model values pagesCount currentPage = 
  div [] [
    table [class "table hash-values"] [
@@ -150,29 +164,31 @@ hashKeyValues model values pagesCount currentPage =
    ]
  ]
 
-drawHashValueOrEditFields : Model -> String -> StringRedisValue -> Html Msg
+drawHashValueOrEditFields : Model -> String -> HashRedisValue -> Html Msg
 drawHashValueOrEditFields model hashKey hashValue =
   case model.editingValue of
-    Nothing -> drawHashValueRow model hashKey hashValue
+    Nothing -> drawHashValueRow model hashKey hashValue.value hashValue.isBinary
     Just (key, valueToEdit) -> 
       if valueToEdit == hashKey then
-        drawHashValueEditFields model hashKey hashValue
+        drawHashValueEditFields model hashKey hashValue.value
       else
-        drawHashValueRow model hashKey hashValue
+        drawHashValueRow model hashKey hashValue.value hashValue.isBinary
 
-drawHashValueRow : Model -> String -> StringRedisValue -> Html Msg
-drawHashValueRow model hashKey hashValue = 
+drawHashValueRow : Model -> String -> StringRedisValue -> Bool -> Html Msg
+drawHashValueRow model hashKey hashValue isBinary = 
     tr [] [
          td [class "break-word key"] [
+            drawIconIfValueIsBinary isBinary,
             text hashKey
          ], 
          td [class "break-word value"] [
             text hashValue
          ],
          td [class "buttons"] [
-           button [class "btn btn-sm btn-edit", onClick <| ValueToEditSelected (hashKey, hashValue)] [
-             i [class "fa fa-pencil"] []
-           ],
+           drawIfFalse isBinary <|
+            button [class "btn btn-sm btn-edit", onClick <| ValueToEditSelected (hashKey, hashValue)] [
+              i [class "fa fa-pencil"] []
+            ],
            button [class "btn btn-sm btn-danger", onClick (ValueDeletionConfirm hashKey)] [
              i [class "fa fa-remove"] []
            ]
@@ -267,12 +283,14 @@ drawListValueRow  model listMember =
             text <| toString listMember.index
         ],
         td [class "break-word value"] [
+            drawIconIfValueIsBinary listMember.isBinary,
             text listMember.value
         ],
         td [class "buttons"] [
-            button [class "btn btn-sm", onClick <| ValueToEditSelected (toString listMember.index, listMember.value)] [
-              i [class "fa fa-pencil"] []
-            ],
+            drawIfFalse listMember.isBinary <|
+              button [class "btn btn-sm", onClick <| ValueToEditSelected (toString listMember.index, listMember.value)] [
+                i [class "fa fa-pencil"] []
+              ],
             button [class "btn btn-sm btn-danger", onClick (ValueDeletionConfirm <| toString listMember.index)] [
               i [class "fa fa-remove"] []
             ]
@@ -326,7 +344,7 @@ drawListValueAddFields model =
     ]
   
 
-setKeyValues : Model -> (List StringRedisValue) -> Int -> Int -> Html Msg
+setKeyValues : Model -> (List SetRedisValue) -> Int -> Int -> Html Msg
 setKeyValues model values pagesCount currentPage = 
   div [] [
     table [class "table set-values"] [
@@ -351,27 +369,29 @@ setKeyValues model values pagesCount currentPage =
     ]
   ]
 
-drawSetValueRowOrEditFields : Model -> StringRedisValue -> Html Msg
+drawSetValueRowOrEditFields : Model -> SetRedisValue -> Html Msg
 drawSetValueRowOrEditFields model value =
   case model.editingValue of
     Just (key, valueReference) ->
-      if valueReference == value then
-        drawSetEditFieldsRow model value
+      if valueReference == value.value then
+        drawSetEditFieldsRow model value.value
       else
-        drawSetValueRow model value
+        drawSetValueRow model value.value value.isBinary
 
     Nothing ->
-      drawSetValueRow model value
+      drawSetValueRow model value.value value.isBinary
 
 
-drawSetValueRow : Model -> StringRedisValue -> Html Msg
-drawSetValueRow model value =
+drawSetValueRow : Model -> StringRedisValue -> Bool-> Html Msg
+drawSetValueRow model value isBinary =
     tr [] [
         td [class "break-word value"] [
+            drawIconIfValueIsBinary isBinary,
             text value
           ],
         td [class "buttons"] [
-            button [class "btn btn-sm", onClick <| ValueToEditSelected (value, value)] [i [class "fa fa-pencil"] []],
+            drawIfFalse isBinary <|
+              button [class "btn btn-sm", onClick <| ValueToEditSelected (value, value)] [i [class "fa fa-pencil"] []],
             button [class "btn btn-sm btn-danger", onClick (ValueDeletionConfirm value)] [i [class "fa fa-remove"] []]
         ]
     ]
@@ -458,12 +478,14 @@ drawSortedSetValueRow model value =
             text <| toString value.score
         ],
         td [class "break-word value"] [
+            drawIconIfValueIsBinary value.isBinary,
             text value.value
         ],
         td [class "buttons"] [
-            button [class "btn btn-sm btn-edit", onClick <| ZSetValueToEditSelected (value.value, value.value, value.score)] [
-              i [class "fa fa-pencil"] []
-            ],
+            drawIfFalse value.isBinary <|
+              button [class "btn btn-sm btn-edit", onClick <| ZSetValueToEditSelected (value.value, value.value, value.score)] [
+                i [class "fa fa-pencil"] []
+              ],
             button [class "btn btn-sm btn-danger", onClick (ValueDeletionConfirm value.value)] [
               i [class "fa fa-remove"] []
             ]

@@ -1,5 +1,6 @@
 module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, KeysTreeNode(..), LoadedKeysSubtree, UnfoldKeysTreeNodeInfo, CollapsedKeysTreeNodeInfo, KeysTreeLeafInfo,
-  LoadedValues(..), RedisValuesPage, RedisValue, emptyKeysSubtree, availableKeyTypes, keyTypeName, keyTypeAlias, keyTypeFromAlias, KeysViewType(..), KeyType(..), RedisValues(..), StringRedisValue, ListRedisValue, ZSetRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
+  LoadedValues(..), RedisValuesPage, RedisValue, emptyKeysSubtree, availableKeyTypes, keyTypeName, keyTypeAlias, keyTypeFromAlias, KeysViewType(..), KeyType(..), RedisValues(..), StringRedisValue, 
+  ListRedisValue, ZSetRedisValue, SetRedisValue, HashRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -97,7 +98,8 @@ type alias RedisValuesPage =  {
 
 type alias RedisValue = {
     value: StringRedisValue,
-    keyType: KeyType
+    keyType: KeyType,
+    isBinary: Bool
 }
 
 type KeyType = StringRedisKey | HashRedisKey | SetRedisKey | ZSetRedisKey | ListRedisKey | UnknownRedisKey
@@ -135,22 +137,34 @@ keyTypeFromAlias slug =
     "list" -> ListRedisKey
     _ -> UnknownRedisKey
 
-type RedisValues = StringRedisValue String 
+type RedisValues = StringRedisValue RedisValue
   | ListRedisValues (List ListRedisValue )
-  | HashRedisValues (Dict String StringRedisValue)
-  | SetRedisValues (List StringRedisValue)
+  | HashRedisValues (Dict String HashRedisValue)
+  | SetRedisValues (List SetRedisValue)
   | ZSetRedisValues (List ZSetRedisValue)
 
 type alias StringRedisValue = String
 
 type alias ZSetRedisValue = {
     score: Int,
-    value: String
+    value: String,
+    isBinary: Bool
+}
+
+type alias SetRedisValue = {
+    value: String,
+    isBinary: Bool
+}
+
+type alias HashRedisValue = {
+    value: String,
+    isBinary: Bool
 }
 
 type alias ListRedisValue = {
     index: Int,
-    value: String
+    value: String,
+    isBinary: Bool
 }
 
 type UserConfirmation = KeyDeletion String | ValueDeletion String
@@ -172,7 +186,7 @@ initModel flags =
     },
     windowSize = {width = 0, height = 0},
     loadedKeysTree = emptyKeysSubtree [],
-    loadedValues = SingleRedisValue <| RedisValue "" StringRedisKey,
+    loadedValues = SingleRedisValue <| RedisValue "" StringRedisKey False,
     keysMask = "",
     chosenServer = Maybe.Nothing,
     chosenKey = Maybe.Nothing,

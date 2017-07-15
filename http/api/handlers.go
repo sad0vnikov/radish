@@ -167,7 +167,7 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 
 type singleValueResponse struct {
 	KeyType string
-	Value   string
+	Value   db.RedisValue
 }
 
 type listValuesResponse struct {
@@ -179,14 +179,14 @@ type listValuesResponse struct {
 
 type hashValuesResponse struct {
 	KeyType    string
-	Values     map[string]string
+	Values     map[string]db.RedisValue
 	PageNum    int
 	PagesCount int
 }
 
 type setValuesResponse struct {
 	KeyType    string
-	Values     []string
+	Values     []db.RedisValue
 	PageNum    int
 	PagesCount int
 }
@@ -250,16 +250,19 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	case db.RedisString:
 		response := singleValueResponse{}
 		response.KeyType = key.KeyType()
-		if str, ok := v.(string); ok {
-			response.Value = str
+		if rv, ok := v.(db.RedisValue); ok {
+			response.Value = sanitizeBinaryValue(rv)
 		}
 		return response, nil
 
 	case db.RedisList:
 		response := listValuesResponse{}
 		response.KeyType = key.KeyType()
-		if strings, ok := v.([]db.ListMember); ok {
-			response.Values = strings
+		if values, ok := v.([]db.ListMember); ok {
+			for i, lm := range values {
+				values[i].Value = sanitizeBinaryValue(lm.Value)
+			}
+			response.Values = values
 		}
 		response.PageNum = pageNum
 		response.PagesCount = pagesCount
@@ -269,6 +272,9 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		response := zsetValuesResponse{}
 		response.KeyType = key.KeyType()
 		if v, ok := v.([]db.ZSetMember); ok {
+			for i, zm := range v {
+				v[i].Member = sanitizeBinaryValue(zm.Member)
+			}
 			response.Values = v
 		}
 		response.PageNum = pageNum
@@ -277,7 +283,10 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	case db.RedisHash:
 		response := hashValuesResponse{}
 		response.KeyType = key.KeyType()
-		if v, ok := v.(map[string]string); ok {
+		if v, ok := v.(map[string]db.RedisValue); ok {
+			for k, hv := range v {
+				v[k] = sanitizeBinaryValue(hv)
+			}
 			response.Values = v
 		}
 		response.PageNum = pageNum
@@ -286,7 +295,10 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	case db.RedisSet:
 		response := setValuesResponse{}
 		response.KeyType = key.KeyType()
-		if v, ok := v.([]string); ok {
+		if v, ok := v.([]db.RedisValue); ok {
+			for i, sv := range v {
+				v[i] = sanitizeBinaryValue(sv)
+			}
 			response.Values = v
 		}
 		response.PageNum = pageNum
@@ -297,6 +309,14 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, fmt.Errorf("%v key has not-supported type %v", keyName, key.KeyType())
 	}
 
+}
+
+func sanitizeBinaryValue(v db.RedisValue) db.RedisValue {
+	if v.IsBinary {
+		v.Value = "[binary data]"
+	}
+
+	return v
 }
 
 //DeleteKey deletes a given key

@@ -17,7 +17,7 @@ type ZSetKey struct {
 //ZSetMember is a ZSetMember struct
 type ZSetMember struct {
 	Score  int64
-	Member string
+	Member RedisValue
 }
 
 //KeyType returns Zset key type
@@ -76,8 +76,11 @@ func (key ZSetKey) Values(pageNum int, pageSize int) (interface{}, error) {
 		}
 
 		zSetValues = append(zSetValues, ZSetMember{
-			Score:  zsetScore,
-			Member: zsetMember,
+			Score: zsetScore,
+			Member: RedisValue{
+				Value:    zsetMember,
+				IsBinary: isBinary(zsetMember),
+			},
 		})
 	}
 

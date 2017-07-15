@@ -58,11 +58,14 @@ func (key HashKey) Values(pageNum int, pageSize int) (interface{}, error) {
 	}
 	valuesPage := values[offsetStart:offsetEnd]
 
-	valuesMap := make(map[string]string)
+	valuesMap := make(map[string]RedisValue)
 	for i := 1; i < len(valuesPage); i = i + 2 {
 		hashKey := valuesPage[i-1]
 		hashValue := valuesPage[i]
-		valuesMap[hashKey] = hashValue
+		valuesMap[hashKey] = RedisValue{
+			Value:    hashValue,
+			IsBinary: isBinary(hashValue),
+		}
 	}
 
 	return valuesMap, nil

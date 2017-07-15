@@ -14,7 +14,7 @@ type ListKey struct {
 //ListMember represents List member value
 type ListMember struct {
 	Index int
-	Value string
+	Value RedisValue
 }
 
 //KeyType returns List key type
@@ -58,7 +58,8 @@ func (key ListKey) Values(pageNum, pageSize int) (interface{}, error) {
 	var values = make([]ListMember, len(strings))
 	memberIndex := pageStart
 	for i, v := range strings {
-		values[i] = ListMember{Value: v, Index: memberIndex}
+		rv := RedisValue{Value: v, IsBinary: isBinary(v)}
+		values[i] = ListMember{Value: rv, Index: memberIndex}
 		memberIndex++
 	}
 

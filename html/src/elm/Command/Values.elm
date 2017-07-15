@@ -5,7 +5,7 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Model.Model exposing (Model, LoadedKeys, LoadedValues, KeyType, RedisKey,
   LoadedValues(..), RedisValuesPage, RedisValue, KeyType(..), RedisValues(..), 
-  StringRedisValue, ListRedisValue, ZSetRedisValue, getChosenServerAndKey, getLoadedKeyType)
+  StringRedisValue, ListRedisValue, SetRedisValue, ZSetRedisValue, HashRedisValue, getChosenServerAndKey, getLoadedKeyType)
 import Http
 import Command.Http.Requests exposing (put, delete, post)
 import Maybe exposing (andThen)
@@ -126,9 +126,12 @@ valuesDecoder =
 
 decodeRedisSingleValue : Decode.Decoder LoadedValues
 decodeRedisSingleValue =
-    Decode.map SingleRedisValue <| Decode.map2 RedisValue
-        (Decode.field "Value" Decode.string)
+    Decode.map SingleRedisValue <| Decode.map3 RedisValue
+        (Decode.field "Value" 
+            <| Decode.field "Value" Decode.string)
         (Decode.field "KeyType" Decode.string |> Decode.andThen decodeKeyType)
+        (Decode.field "Value"
+            <| Decode.field "IsBinary" Decode.bool)
         
 
 decodeRedisValuesPage : Decode.Decoder LoadedValues
@@ -165,19 +168,28 @@ decodeValuesList =
 decodeListValues : Decode.Decoder RedisValues
 decodeListValues =
     Decode.map ListRedisValues <|
-        Decode.list <| Decode.map2 ListRedisValue (Decode.field "Index" Decode.int) (Decode.field "Value" Decode.string)
+        Decode.list 
+            <| Decode.map3 ListRedisValue 
+                (Decode.field "Index" Decode.int) 
+                (Decode.field "Value" Decode.string) 
+                (Decode.field "IsBinary" Decode.bool)
 
 decodeHashValues : Decode.Decoder RedisValues
 decodeHashValues = 
-    Decode.map HashRedisValues <| Decode.dict Decode.string
+    Decode.map HashRedisValues 
+        <| Decode.dict
+            (Decode.map2 HashRedisValue (Decode.field "Value" Decode.string) (Decode.field "IsBinary" Decode.bool))
 
 decodeSetValues : Decode.Decoder RedisValues
 decodeSetValues =    
-    Decode.map SetRedisValues <| Decode.list Decode.string
+    Decode.map SetRedisValues 
+        <| Decode.list 
+        <| Decode.map2 SetRedisValue (Decode.field "Value" Decode.string) (Decode.field "IsBinary" Decode.bool)
 
 decodeZSetValues : Decode.Decoder RedisValues
 decodeZSetValues =
     Decode.map ZSetRedisValues <| Decode.list <|
-        Decode.map2 ZSetRedisValue
+        Decode.map3 ZSetRedisValue
             (Decode.field "Score" Decode.int)
-            (Decode.field "Member" Decode.string)
+            (Decode.field "Member" <| Decode.field "Value" Decode.string)
+            (Decode.field "Member" <| Decode.field "IsBinary" Decode.bool)
