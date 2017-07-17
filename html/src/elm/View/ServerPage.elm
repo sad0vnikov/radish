@@ -12,6 +12,7 @@ import View.Pagination exposing (drawPager)
 import View.Values exposing (..)
 import View.AddKeyModal as AddKeyModal
 import View.AboutModal as AboutModal
+import View.Helpers exposing (..)
 import Dialog
 
 view : Model -> Html Msg
@@ -44,7 +45,8 @@ navbar model =
                 a [ class "dropdown-toggle", attribute "data-toggle" "dropdown" ] [
                     i [class "fa fa-server"] [],
                     text " ",
-                    drawChosenServerName model
+                    drawChosenServerName model,
+                    span [class "caret"] []
                 ],
                 ul [ class "dropdown-menu" ] 
                   <| List.map (\server -> 
@@ -52,6 +54,26 @@ navbar model =
                         a [href "#", onClick (ChosenServer server.name)] [text server.name]
                       ] 
                     ) <| Dict.values model.loadedServers.servers
+              ],
+              li [ class <| 
+                  "dropdown " ++ 
+                    ((\chosenServer -> if model.chosenServer == Nothing then "hidden" else "") model.chosenServer) 
+                ] [
+                a [ class "dropdown-toggle", attribute "data-toggle" "dropdown" ] [
+                  i [class "fa fa-database"] [],
+                  text (" db # " ++ (toString model.chosenDatabaseNum)),
+                  span [class "caret"] []
+                ],
+                ul [class "dropdown-menu"]
+                  <| List.map (\dbNum -> 
+                    li [] [
+                      a [href "#", onClick (DatabaseChosen dbNum)] [
+                        text <| toString dbNum
+                      ]
+                    ]
+                  ) <| List.range 0 
+                    <| Maybe.withDefault 0 
+                    <| Maybe.andThen (\server -> Just server.databasesCount) (getChosenServer model)
               ]
             ]
       ]

@@ -1,6 +1,6 @@
 module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, KeysTreeNode(..), LoadedKeysSubtree, UnfoldKeysTreeNodeInfo, CollapsedKeysTreeNodeInfo, KeysTreeLeafInfo,
   LoadedValues(..), RedisValuesPage, RedisValue, emptyKeysSubtree, availableKeyTypes, keyTypeName, keyTypeAlias, keyTypeFromAlias, KeysViewType(..), KeyType(..), RedisValues(..), StringRedisValue, 
-  ListRedisValue, ZSetRedisValue, SetRedisValue, HashRedisValue, UserConfirmation(..), getLoadedKeyType, getChosenServerAndKey, initModel)
+  ListRedisValue, ZSetRedisValue, SetRedisValue, HashRedisValue, UserConfirmation(..), getChosenServer, getLoadedKeyType, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -27,6 +27,7 @@ type alias Model = {
   keysMask: String,
 
   chosenServer: Maybe String,
+  chosenDatabaseNum: Int,  
   chosenKeysViewType: KeysViewType,
   chosenKey: Maybe String,
 
@@ -188,7 +189,8 @@ initModel flags =
     loadedKeysTree = emptyKeysSubtree [],
     loadedValues = SingleRedisValue <| RedisValue "" StringRedisKey False,
     keysMask = "",
-    chosenServer = Maybe.Nothing,
+    chosenServer = Maybe.Nothing,   
+    chosenDatabaseNum = 0, 
     chosenKey = Maybe.Nothing,
     error = Maybe.Nothing,
     waitingForConfirmation = Nothing,
@@ -216,7 +218,8 @@ getLoadedKeyType loadedValues =
 type alias Server = {
   name: String,
   host: String,
-  port_: Int
+  port_: Int,
+  databasesCount: Int
 }
 
 type alias RedisKey = String
@@ -224,3 +227,10 @@ type alias RedisKey = String
 getChosenServerAndKey : Model -> Maybe (String, String)
 getChosenServerAndKey model =
     Maybe.map2 (\key server -> (key,server)) model.chosenServer model.chosenKey
+
+getChosenServer : Model -> Maybe Server
+getChosenServer model =
+  case model.chosenServer of
+    Just server -> 
+      Dict.get server model.loadedServers.servers
+    Nothing -> Nothing

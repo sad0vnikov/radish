@@ -2,6 +2,7 @@ module Update.Update exposing (update)
 
 import Model.Model exposing (..)
 import Http
+import String exposing (toInt)
 import Dict exposing (..)
 import View.Toastr as Toastr
 import Update.Msg exposing (Msg(..))
@@ -19,7 +20,11 @@ update msg model =
         updatedModel = {model | chosenServer = Just server}
       in
         (updatedModel, getKeysPage updatedModel)
-
+    DatabaseChosen dbNum ->
+      let
+        updatedModel = {model | chosenDatabaseNum = dbNum, chosenKey = Nothing}
+      in
+        (updatedModel, getKeysPage updatedModel)
     ServersListLoaded (Ok servers) ->
       ({model | loadedServers = (updateServersList model.loadedServers servers)}, Cmd.none)
     ServersListLoaded (Err err) ->
