@@ -7,6 +7,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/sad0vnikov/radish/config"
 	"github.com/sad0vnikov/radish/logger"
+	rd "github.com/sad0vnikov/radish/redis"
 )
 
 //Connections is an interface for objects storing Redis connections
@@ -88,4 +89,17 @@ func (connections MockedConnections) GetMaxDbNumsForServer(serverName string) (u
 		return 0, errors.New("mock is not set, put your connection mock at ConectionMock struct field")
 	}
 	return uint8(8), nil
+}
+
+//GetServersWithConnectionData returns servers list from config with connection data like databases count, connection status, etc.
+func GetServersWithConnectionData() map[string]rd.Server {
+	configServers := config.Get().Servers
+	result := make(map[string]rd.Server)
+	for _, srv := range configServers {
+		dbsCount, _ := GetMaxDbNumsForServer(srv.Name)
+		srv.DatabasesCount = dbsCount
+		result[srv.Name] = srv
+	}
+
+	return result
 }

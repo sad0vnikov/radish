@@ -2,9 +2,10 @@ package redis
 
 //Server is a struct storing redis server parameters
 type Server struct {
-	Name string
-	Host string
-	Port int
+	Name           string
+	Host           string
+	Port           int
+	DatabasesCount uint8
 }
 
 //NewServer returns a redis.Server struct with given fields

@@ -11,7 +11,6 @@ import (
 
 	"io/ioutil"
 
-	"github.com/sad0vnikov/radish/config"
 	"github.com/sad0vnikov/radish/http/responds"
 	"github.com/sad0vnikov/radish/http/server"
 	"github.com/sad0vnikov/radish/logger"
@@ -21,7 +20,7 @@ import (
 
 //GetServersList is a http handler returning a list of avalable Redis instances
 func GetServersList(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	return config.Get().Servers, nil
+	return db.GetServersWithConnectionData(), nil
 }
 
 type getKeysByMaskResponse struct {
