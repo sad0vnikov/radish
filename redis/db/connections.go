@@ -76,7 +76,7 @@ type MockedConnections struct {
 }
 
 //GetByName returns mocked connection
-func (connections MockedConnections) GetByName(serverName string) (redis.Conn, error) {
+func (connections MockedConnections) GetByName(serverName string, dbNum uint8) (redis.Conn, error) {
 	if connections.ConnectionMock == nil {
 		return nil, errors.New("mock is not set, put your connection mock at ConectionMock struct field")
 	}

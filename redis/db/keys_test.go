@@ -22,7 +22,7 @@ func TestGetKeysByMask(t *testing.T) {
 	conn.Command("KEYS", "a*").
 		Expect(expectedResult)
 
-	result, err := FindKeysByMask("server1", "a*")
+	result, err := FindKeysByMask("server1", 0, "a*")
 	if err != nil {
 		t.Error(err)
 	}

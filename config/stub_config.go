@@ -13,7 +13,7 @@ func (StubConfigLoader) Load() (Config, error) {
 	servers["server2"] = redis.NewServer("server2", "127.0.0.1", 6380)
 	servers["server3"] = redis.NewServer("server3", "127.0.0.1", 6381)
 
-	config := Config{Servers: servers}
+	config = Config{Servers: servers}
 
 	return config, nil
 }
