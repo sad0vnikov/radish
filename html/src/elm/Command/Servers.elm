@@ -16,8 +16,9 @@ getServersList model =
 
 serversListDecoder : Decode.Decoder (Dict String Server)
 serversListDecoder =
-    Decode.dict <| Decode.map4 Server 
+    Decode.dict <| Decode.map5 Server 
         (Decode.field "Name" Decode.string) 
         (Decode.field "Host" Decode.string) 
         (Decode.field "Port" Decode.int)
         (Decode.field "DatabasesCount" Decode.int)
+        (Decode.field "ConnectionCheckPassed" Decode.bool)

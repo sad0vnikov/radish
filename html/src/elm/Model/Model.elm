@@ -219,7 +219,8 @@ type alias Server = {
   name: String,
   host: String,
   port_: Int,
-  databasesCount: Int
+  databasesCount: Int,
+  connectionCheckPassed: Bool
 }
 
 type alias RedisKey = String

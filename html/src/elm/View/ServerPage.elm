@@ -51,7 +51,11 @@ navbar model =
                 ul [ class "dropdown-menu" ] 
                   <| List.map (\server -> 
                       li [] [
-                        a [href "#", onClick (ChosenServer server.name)] [text server.name]
+                        a [href "#", onClick (ChosenServer server.name)] [
+                          text <| server.name ++ " ",                          
+                          drawIfFalse server.connectionCheckPassed 
+                            <| span [class "fa fa-warning text-warning", title "Connection problems"] []
+                        ]  
                       ] 
                     ) <| Dict.values model.loadedServers.servers
               ],

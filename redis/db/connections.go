@@ -96,7 +96,10 @@ func GetServersWithConnectionData() map[string]rd.Server {
 	configServers := config.Get().Servers
 	result := make(map[string]rd.Server)
 	for _, srv := range configServers {
-		dbsCount, _ := GetMaxDbNumsForServer(srv.Name)
+		dbsCount, err := GetMaxDbNumsForServer(srv.Name)
+		if err == nil {
+			srv.ConnectionCheckPassed = true
+		}
 		srv.DatabasesCount = dbsCount
 		result[srv.Name] = srv
 	}
