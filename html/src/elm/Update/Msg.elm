@@ -24,9 +24,11 @@ type Msg = NoOp
   | UserConfirmation
   | UserConfirmationCancel
   | ValueToEditSelected (String, StringRedisValue)
+  | HashValueToEditSelected (String, StringRedisValue)
   | ZSetValueToEditSelected (String, StringRedisValue, Int)  
   | ValueEditingCanceled
   | EditedValueChanged String
+  | EditedHashKeyChanged String
   | EditedScoreChanged String
   | ValueUpdateInitialized StringRedisValue
   | ValueUpdated (Result Http.Error ())

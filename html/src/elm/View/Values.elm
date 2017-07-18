@@ -186,7 +186,7 @@ drawHashValueRow model hashKey hashValue isBinary =
          ],
          td [class "buttons"] [
            drawIfFalse isBinary <|
-            button [class "btn btn-sm btn-edit", onClick <| ValueToEditSelected (hashKey, hashValue)] [
+            button [class "btn btn-sm btn-edit", onClick <| HashValueToEditSelected (hashKey, hashValue)] [
               i [class "fa fa-pencil"] []
             ],
            button [class "btn btn-sm btn-danger", onClick (ValueDeletionConfirm hashKey)] [
@@ -199,7 +199,7 @@ drawHashValueEditFields : Model -> String -> StringRedisValue -> Html Msg
 drawHashValueEditFields model hashKey hashValue =
   tr [] [
     td [class "key"] [
-      text hashKey
+      input [class "form-control", Html.Attributes.value model.editingHashKeyToSave, onInput EditedHashKeyChanged] []
     ],
     td [class "value"] [
       input [class "form-control", Html.Attributes.value model.editingValueToSave, onInput EditedValueChanged] []

@@ -117,6 +117,11 @@ valueEditJsonRequest model keyType =
                 ("Value", Encode.string model.editingValueToSave),
                 ("Score", Encode.int model.editingScoreToSave)
             ]) 
+        HashRedisKey ->
+            (Encode.object [
+                ("Value", Encode.string model.editingValueToSave),
+                ("NewHashKey", Encode.string model.editingHashKeyToSave)
+            ])
         _ -> (Encode.object [("Value", Encode.string model.editingValueToSave)])   
 
 

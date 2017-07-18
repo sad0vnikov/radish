@@ -93,6 +93,11 @@ update msg model =
       case model.chosenKey of
         Just key -> ({model | editingValue = Just (key, valueReference), editingValueToSave = currentValue}, Cmd.none)
         Nothing -> (model, Cmd.none)
+    HashValueToEditSelected (currentHashKey, currentValue) ->
+      let
+        modelWithHashKey = {model | editingHashKeyToSave = currentHashKey}
+      in 
+        update (ValueToEditSelected (currentHashKey, currentValue)) modelWithHashKey
     ZSetValueToEditSelected (valueReference, currentValue, currentScore) ->
       let 
         modelWithScore = {model | editingScoreToSave = currentScore}
@@ -101,6 +106,8 @@ update msg model =
 
     EditedValueChanged value ->
       ({model | editingValueToSave = value}, Cmd.none)
+    EditedHashKeyChanged hashKey ->
+      ({model | editingHashKeyToSave = hashKey}, Cmd.none)
     EditedScoreChanged score ->
       let 
         convertedScore = String.toInt score
@@ -118,7 +125,7 @@ update msg model =
     ValueUpdated (Ok response) ->
       ({model | editingValue = Nothing}, getKeyValues model 1)
     ValueUpdated (Err err) ->
-      (model, Toastr.toastError <| "Error while updating value: " ++ (httpErrorToString err))
+      (model, Toastr.toastError <| "Error while updating value: " ++ (valueUpdatingErrorToString err))
 
     AddingValueStart ->
       ({model | isAddingValue = True, addingValue = "", addingHashKey = ""}, Cmd.none)
@@ -137,7 +144,7 @@ update msg model =
     ValueAdded (Ok response) ->
       ({model | isAddingValue = False, addKeyModalShown = False}, getKeyValues model 1)
     ValueAdded (Err err) ->
-      (model, Toastr.toastError <| "Error while adding value: " ++ (valueAddingErrorToString err))
+      (model, Toastr.toastError <| "Error while adding value: " ++ (valueUpdatingErrorToString err))
     ShowAddKeyModal ->
       ({model | addKeyModalShown = True}, Cmd.none)
     CloseAddKeyModal ->
@@ -263,8 +270,8 @@ httpErrorToString err =
     Http.BadPayload _ _ ->  "Cannot decode response"
 
 
-valueAddingErrorToString : Http.Error -> String
-valueAddingErrorToString err =
+valueUpdatingErrorToString : Http.Error -> String
+valueUpdatingErrorToString err =
  case err of
   Http.BadStatus response -> 
     if response.status.code == 409 then "Key already exists"

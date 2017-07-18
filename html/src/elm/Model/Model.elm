@@ -36,6 +36,7 @@ type alias Model = {
   waitingForConfirmation: Maybe UserConfirmation,
   editingValue: Maybe (RedisKey, String),
   editingValueToSave: String,
+  editingHashKeyToSave: String,
   editingScoreToSave: Int,
 
   isAddingValue: Bool,
@@ -196,6 +197,7 @@ initModel flags =
     waitingForConfirmation = Nothing,
     editingValue = Nothing,
     editingValueToSave = "",
+    editingHashKeyToSave = "",
     editingScoreToSave = 0,
 
     isAddingValue = False,
