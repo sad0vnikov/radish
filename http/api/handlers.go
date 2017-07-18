@@ -509,7 +509,8 @@ func AddHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 }
 
 type updateHashValueJSONRequest struct {
-	Value string
+	Value      string
+	NewHashKey string
 }
 
 //UpdateHashValue updates an exists hash value
@@ -536,6 +537,7 @@ func UpdateHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 		return nil, responds.NewBadRequestError("JSON `Value` param is missing")
 	}
 	hashValue := bodyReq.Value
+	newHashKey := bodyReq.NewHashKey
 
 	ex, err := db.HashKeyExists(serverName, dbNum, keyName, hashKey)
 	if err != nil {
@@ -547,7 +549,21 @@ func UpdateHashValue(w http.ResponseWriter, r *http.Request) (interface{}, error
 		return nil, responds.NewNotFoundError(fmt.Sprintf("key %v doesn't exist", keyName))
 	}
 
-	err = db.SetHashKey(serverName, dbNum, keyName, hashKey, hashValue)
+	if len(newHashKey) > 0 && newHashKey != hashKey {
+		ex, err = db.HashKeyExists(serverName, dbNum, keyName, newHashKey)
+		if err != nil {
+			logger.Error(err)
+			return nil, err
+		}
+
+		if ex {
+			return nil, responds.NewConflictError(fmt.Sprintf("key %s already exists for hash %s", newHashKey, keyName))
+		}
+	} else {
+		newHashKey = hashKey
+	}
+
+	err = db.UpdateHashKey(serverName, dbNum, keyName, hashKey, newHashKey, hashValue)
 	if err != nil {
 		return nil, err
 	}

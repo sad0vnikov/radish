@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+
 	"github.com/garyburd/redigo/redis"
 	"github.com/sad0vnikov/radish/logger"
 	rd "github.com/sad0vnikov/radish/redis"
@@ -98,6 +100,38 @@ func SetHashKey(serverName string, dbNum uint8, key, hashKey, hashValue string) 
 	}
 
 	_, err = conn.Do("HSET", key, hashKey, hashValue)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//UpdateHashKey updates a value and hash key
+func UpdateHashKey(serverName string, dbNum uint8, key, hashKey, newHashKey, hashValue string) error {
+	if hashKey == newHashKey {
+		return SetHashKey(serverName, dbNum, key, hashKey, hashValue)
+	}
+
+	ex, err := HashKeyExists(serverName, dbNum, key, newHashKey)
+	if err != nil {
+		return err
+	}
+
+	if ex {
+		return fmt.Errorf("hash key %s already exists in hash %s", newHashKey, key)
+	}
+
+	conn, err := connector.GetByName(serverName, dbNum)
+	_, err = conn.Do("MULTI")
+	if err != nil {
+		return err
+	}
+
+	DeleteHashValue(serverName, dbNum, key, hashKey)
+	SetHashKey(serverName, dbNum, key, newHashKey, hashValue)
+
+	_, err = conn.Do("EXEC")
 	if err != nil {
 		return err
 	}
