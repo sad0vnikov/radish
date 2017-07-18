@@ -8,11 +8,13 @@ import Model.Model exposing (LoadedKeys, Server, RedisKey, RedisValue, StringRed
 type Msg = NoOp 
   | ChosenServer String 
   | DatabaseChosen Int
+  | KeysListUpdateInitialized
   | ServersListLoaded (Result Http.Error (Dict String Server))
   | KeysPageLoaded (Result Http.Error LoadedKeys)
   | KeysMaskChanged String
   | KeysPageChanged Int
   | KeyChosen RedisKey
+  | ValuesListUpdateInitialized
   | ValuesPageChanged Int
   | KeyValuesLoaded (Result Http.Error LoadedValues)
   | KeyDeletionConfirm RedisKey

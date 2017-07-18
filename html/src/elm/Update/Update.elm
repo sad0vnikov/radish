@@ -32,6 +32,13 @@ update msg model =
         errorStr = "Got error while loading servers list: " ++ (httpErrorToString err)
       in
         (model, Toastr.toastError errorStr)
+    KeysListUpdateInitialized ->
+      (model, getKeysPage model)
+    ValuesListUpdateInitialized ->
+      case model.loadedValues of
+        MultipleRedisValues valuesPage ->
+          (model, getKeyValues model valuesPage.currentPage)
+        _ -> (model, getKeyValues model 1)
     KeysPageLoaded (Ok keys) ->
       ({model | loadedKeys = keys}, Cmd.none)
     KeysPageLoaded (Err err) ->

@@ -47,12 +47,21 @@ keyEditor model chosenKey =
   div [] [
     div [class "page-header"] [
       h2 [class "break-word"] [
-        text <| chosenKey ++ " ",
-        small [] [drawKeyType model.loadedValues],
-        button [class "btn btn-sm btn-danger pull-right", onClick (KeyDeletionConfirm chosenKey)] [
-          i [class "fa fa-remove"] [],
-          text " Delete key"
-        ]
+        div [class "pull-left"] [
+          text <| chosenKey ++ " ",
+          small [] [drawKeyType model.loadedValues]
+        ],
+        div [class "btn-group pull-right"] [
+          button [class "btn btn-sm", onClick ValuesListUpdateInitialized] [
+            i [class "fa fa-refresh"] [],
+            text " Refresh data"
+          ],
+          button [class "btn btn-sm btn-danger", onClick (KeyDeletionConfirm chosenKey)] [
+            i [class "fa fa-remove"] [],
+            text " Delete key"
+          ]
+        ],
+        div [class "clearfix"] []
       ]   
     ],
     drawKeyValuesEditorByType chosenKey model

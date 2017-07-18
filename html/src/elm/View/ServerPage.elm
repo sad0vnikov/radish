@@ -179,6 +179,12 @@ drawKeysActionsButton model =
     ],
     ul [class "dropdown-menu"] [
       li [] [
+        a [onClick KeysListUpdateInitialized] [
+          i [class "fa fa-refresh"] [],
+          text " Refresh keys"
+        ]
+      ],
+      li [] [
         a [onClick ShowAddKeyModal] [
             i [class "fa fa-plus-square"] [],
             text " Add key"
