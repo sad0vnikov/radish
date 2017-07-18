@@ -42,7 +42,12 @@ getKeysSubtree model path =
         Just chosenServer ->
             let
                 treePath = String.join "/" path
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys-tree?path=" ++ (Http.encodeUri treePath)
+                url = model.api.url 
+                    ++ "/servers/" 
+                    ++ chosenServer 
+                    ++ "/keys-tree?path=" 
+                    ++ (Http.encodeUri treePath) 
+                    ++ "&db=" ++ toString model.chosenDatabaseNum
             in
                 Http.send KeysTreeSubtreeLoaded (Http.get url keysSubtreeDecoder)
         Nothing ->
@@ -91,7 +96,12 @@ deleteKey key model =
     case model.chosenServer of
         Just chosenServer ->
             let
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/" ++ key
+                url = model.api.url 
+                    ++ "/servers/" 
+                    ++ chosenServer 
+                    ++ "/keys/" 
+                    ++ key
+                    ++ "&db=" ++ toString model.chosenDatabaseNum
             in
                 Http.send KeyDeleted (delete url)
         Nothing ->

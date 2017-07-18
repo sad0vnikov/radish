@@ -15,7 +15,11 @@ getKeyValues model pageNum =
     case getChosenServerAndKey model of
         Just (chosenServer,chosenKey) ->
             let
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/" ++ chosenKey ++ "/values?page=" ++ (toString pageNum)
+                url = model.api.url 
+                    ++ "/servers/" ++ chosenServer 
+                    ++ "/keys/" ++ chosenKey 
+                    ++ "/values?page=" ++ (toString pageNum)
+                    ++ "&db=" ++ (toString model.chosenDatabaseNum)
             in
                 Http.send KeyValuesLoaded (Http.get url valuesDecoder)
         Nothing ->
@@ -26,7 +30,10 @@ deleteValue model valueToDelete =
     case getChosenServerAndKey model of
         Just (chosenServer,chosenKey) ->
             let
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys/" ++ valueDeleteUrlPath chosenKey (getLoadedKeyType model.loadedValues) valueToDelete
+                url = model.api.url 
+                    ++ "/servers/" ++ chosenServer 
+                    ++ "/keys/" ++ valueDeleteUrlPath chosenKey (getLoadedKeyType model.loadedValues) valueToDelete
+                    ++ "&db=" ++ toString model.chosenDatabaseNum
             in
                 Http.send ValueDeleted (delete url)
         Nothing ->
@@ -56,7 +63,10 @@ addValueForChosenKey model =
 addValue : String -> RedisKey -> KeyType -> Model -> Cmd Msg
 addValue serverName keyName keyType model =
     let 
-        url = model.api.url ++ "/servers/" ++ serverName ++ "/keys" ++ valueAddUrlPath keyName keyType
+        url = model.api.url 
+            ++ "/servers/" ++ serverName 
+            ++ "/keys" ++ valueAddUrlPath keyName keyType
+            ++ "?db=" ++ toString model.chosenDatabaseNum
     in
         Http.send ValueAdded (post url (Http.jsonBody <| valueAddJsonRequest model keyType))
 
@@ -90,7 +100,10 @@ updateValue model value newValue =
         Just (chosenServer,chosenKey) ->
             let
                 keyType = getLoadedKeyType model.loadedValues
-                url = model.api.url ++ "/servers/" ++ chosenServer ++ "/keys" ++ valueEditUrlPath chosenKey keyType value
+                url = model.api.url 
+                    ++ "/servers/" ++ chosenServer 
+                    ++ "/keys" ++ valueEditUrlPath chosenKey keyType value
+                    ++ "?db=" ++ toString model.chosenDatabaseNum
             in
                 Http.send ValueUpdated (put url (Http.jsonBody <| valueEditJsonRequest model keyType))
         Nothing ->
