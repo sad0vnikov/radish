@@ -73,7 +73,7 @@ navbar model =
                     ]
                   ) <| List.range 0 
                     <| Maybe.withDefault 0 
-                    <| Maybe.andThen (\server -> Just server.databasesCount) (getChosenServer model)
+                    <| Maybe.andThen (\server -> Just (server.databasesCount - 1 )) (getChosenServer model)
               ]
             ]
       ]
