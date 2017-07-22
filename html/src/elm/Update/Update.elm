@@ -85,7 +85,7 @@ update msg model =
     KeyDeletionConfirmed key ->
       (model, deleteKey key model) 
     KeyDeleted (Ok response) ->
-      ({model | chosenKey = Nothing}, getKeysPage model)
+      ({model | chosenKey = Nothing}, updateLoadedKeys model)
     KeyDeleted (Err err) ->
       (model, Toastr.toastError <| "Got error while deleting key: " ++ (httpErrorToString err) )
     ValueDeletionConfirm value ->
@@ -93,7 +93,7 @@ update msg model =
     ValueDeletionConfirmed value ->
       (model, deleteValue model value)
     ValueDeleted (Ok response) ->
-      (model, getKeyValues model 1) 
+      (model, Cmd.batch [updateLoadedKeys model, getKeyValues model 1]) 
     ValueDeleted (Err err) ->
       (model, Toastr.toastError <| "Got error while deleting value: " ++ (httpErrorToString err))
     ValueToEditSelected (valueReference, currentValue) ->
@@ -149,7 +149,7 @@ update msg model =
     AddingValueInitialized ->
       (model, addValueForChosenKey model)
     ValueAdded (Ok response) ->
-      ({model | isAddingValue = False, addKeyModalShown = False}, getKeyValues model 1)
+      ({model | isAddingValue = False, addKeyModalShown = False}, Cmd.batch [getKeyValues model 1, updateLoadedKeys model])
     ValueAdded (Err err) ->
       (model, Toastr.toastError <| "Error while adding value: " ++ (valueUpdatingErrorToString err))
     ShowAddKeyModal ->
