@@ -42,7 +42,7 @@ getKeysSubtree model path =
     case model.chosenServer of
         Just chosenServer ->
             let
-                treePath = String.join "/" path
+                treePath = buildKeysPathApiParam path
                 url = model.api.url 
                     ++ "/servers/" 
                     ++ chosenServer 
@@ -53,6 +53,13 @@ getKeysSubtree model path =
                 Http.send KeysTreeSubtreeLoaded (Http.get url keysSubtreeDecoder)
         Nothing ->
             Cmd.none
+
+buildKeysPathApiParam : List String -> String
+buildKeysPathApiParam path =
+    if List.length path == 0 then
+        ""
+    else
+        (String.join "/" path) ++ "/"
 
 updateLoadedKeys : Model -> Cmd Msg
 updateLoadedKeys model =

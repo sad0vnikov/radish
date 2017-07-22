@@ -120,6 +120,20 @@ func TestGettingChildrenFromKeys(t *testing.T) {
 		t.Error(err)
 	}
 
+	keys = []string{":a:b", ":a:c"}
+	keysMask = ":*"
+	delimiter = ":"
+
+	result = getChildrenFromKeys(keys, keysMask, delimiter)
+
+	expectedResult = []KeyTreeNode{
+		KeyTreeNode{Name: "a", Key: "a", HasChildren: true},
+	}
+
+	if err := compareTreeNodeSlices(result, expectedResult); err != nil {
+		t.Error(err)
+	}
+
 }
 
 func compareTreeNodeSlices(a, b []KeyTreeNode) error {

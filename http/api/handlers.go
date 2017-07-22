@@ -165,6 +165,10 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 
 	pathURI := r.URL.Query().Get("path")
 	path := strings.Split(pathURI, "/")
+	if len(pathURI) > 0 && pathURI[len(pathURI)-1] == '/' {
+		path = path[:len(path)-1]
+	}
+
 	if pathURI == "" {
 		path = []string{}
 	}
@@ -174,7 +178,7 @@ func GetKeysSubtree(w http.ResponseWriter, r *http.Request) (interface{}, error)
 	pageSize = 100
 
 	keyPrefix := strings.Join(path, delimiter)
-	if len(keyPrefix) == 0 {
+	if len(path) == 0 {
 		keyPrefix = "*"
 	}
 	node := db.KeyTreeNode{Name: keyPrefix, HasChildren: true}
