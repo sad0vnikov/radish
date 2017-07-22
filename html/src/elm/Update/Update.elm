@@ -33,7 +33,7 @@ update msg model =
       in
         (model, Toastr.toastError errorStr)
     KeysListUpdateInitialized ->
-      (model, getKeysPage model)
+      (model, updateLoadedKeys model)
     ValuesListUpdateInitialized ->
       case model.loadedValues of
         MultipleRedisValues valuesPage ->
