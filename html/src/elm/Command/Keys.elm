@@ -1,6 +1,7 @@
-module Command.Keys exposing (getKeysPage, getKeysSubtree, deleteKey, addKey)
+module Command.Keys exposing (getKeysPage, getKeysSubtree, deleteKey, addKey, updateLoadedKeys)
 
-import Model.Model exposing (Model, RedisKey, LoadedKeys, KeysTreeNode(..), LoadedKeysSubtree, UnfoldKeysTreeNodeInfo, CollapsedKeysTreeNodeInfo, KeysTreeLeafInfo, keyTypeFromAlias)
+import Model.Model exposing (Model, RedisKey, LoadedKeys, KeysTreeNode(..), KeysViewType(..),
+    LoadedKeysSubtree, UnfoldKeysTreeNodeInfo, CollapsedKeysTreeNodeInfo, KeysTreeLeafInfo, keyTypeFromAlias)
 import Update.Msg exposing (Msg(..))
 import Http
 import Json.Decode as Decode
@@ -52,6 +53,14 @@ getKeysSubtree model path =
                 Http.send KeysTreeSubtreeLoaded (Http.get url keysSubtreeDecoder)
         Nothing ->
             Cmd.none
+
+updateLoadedKeys : Model -> Cmd Msg
+updateLoadedKeys model =
+    case model.chosenKeysViewType of
+        KeysListView ->
+            getKeysPage model
+        KeysTreeView ->
+            getKeysSubtree model []
 
 keysSubtreeDecoder : Decode.Decoder LoadedKeysSubtree
 keysSubtreeDecoder = 

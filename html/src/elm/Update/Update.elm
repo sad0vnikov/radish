@@ -19,12 +19,12 @@ update msg model =
       let
         updatedModel = {model | chosenServer = Just server}
       in
-        (updatedModel, getKeysPage updatedModel)
+        (updatedModel, updateLoadedKeys updatedModel)
     DatabaseChosen dbNum ->
       let
         updatedModel = {model | chosenDatabaseNum = dbNum, chosenKey = Nothing}
       in
-        (updatedModel, getKeysPage updatedModel)
+        (updatedModel, updateLoadedKeys updatedModel)
     ServersListLoaded (Ok servers) ->
       ({model | loadedServers = (updateServersList model.loadedServers servers)}, Cmd.none)
     ServersListLoaded (Err err) ->
@@ -216,7 +216,7 @@ updateKeysPage loadedKeys newPage =
 updateKeysTree : LoadedKeysSubtree -> LoadedKeysSubtree -> LoadedKeysSubtree
 updateKeysTree loadedSubtree currentSubtree =
   if List.isEmpty loadedSubtree.path then
-    {currentSubtree | loadedNodes = (currentSubtree.loadedNodes ++ loadedSubtree.loadedNodes)}
+    {currentSubtree | loadedNodes = (loadedSubtree.loadedNodes)}
   else
     {currentSubtree | loadedNodes = List.map (updateSubtreeLoadedNode loadedSubtree) currentSubtree.loadedNodes}
 
