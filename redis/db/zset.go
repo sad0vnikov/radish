@@ -19,18 +19,17 @@ type ZSetValues struct {
 
 func (v *ZSetValues) Values() (interface{}, error) {
 	if !v.valuesLoaded {
-		loadedValues, err := v.key.getValues(v.query.PageNum, v.query.PageSize)
+		err := v.loadValues()
 		if err != nil {
 			return nil, err
 		}
-		v.values = loadedValues
 	}
 	return v.values, nil
 }
 
 func (v *ZSetValues) PagesCount() (int, error) {
 	if !v.pagesCountLoaded {
-		pagesCount, err := v.key.getPagesCount(v.query.PageSize)
+		pagesCount, err := v.calculatePagesCount()
 		if err != nil {
 			return 0, err
 		}
@@ -65,44 +64,53 @@ func (key ZSetKey) Values(query *KeyValuesQuery) KeyValues {
 
 }
 
-//PagesCount returns ZSET key values pages count
-func (key ZSetKey) getPagesCount(pageSize int) (int, error) {
-	conn, err := connector.GetByName(key.serverName, key.dbNum)
+//PagesCount returns ZSET key vInfo pages count
+func (vInfo *ZSetValues) calculatePagesCount() (int, error) {
+	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
 	if err != nil {
 		return 0, err
 	}
 
-	r, err := conn.Do("ZCARD", key.key)
-	count, err := redis.Int(r, err)
+	count := 0
+	if vInfo.query.Mask == "*" {
+		r, err := conn.Do("ZCARD", vInfo.key.key)
+		count, err = redis.Int(r, err)
+	} else {
+		if !vInfo.valuesLoaded {
+			err = vInfo.loadValues()
+		}
+		count = len(vInfo.values)
+	}
+
 	if err != nil {
 		panic(err)
 	}
 
-	return getValuesPagesCount(count, pageSize), nil
+	return getValuesPagesCount(count, vInfo.query.PageSize), nil
 }
 
-//Values returns ZSET values page
-func (key ZSetKey) getValues(pageNum int, pageSize int) ([]ZSetMember, error) {
-	conn, err := connector.GetByName(key.serverName, key.dbNum)
+//Values returns ZSET vInfo page
+func (vInfo *ZSetValues) loadValues() error {
+	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var (
 		values []string
 	)
 
-	r, err := conn.Do("ZRANGEBYSCORE", key.key, "-inf", "+inf", "WITHSCORES")
+	r, err := conn.Do("ZRANGEBYSCORE", vInfo.key.key, "-inf", "+inf", "WITHSCORES")
 	values, err = redis.Strings(r, err)
 	if err != nil {
 		logger.Error(err)
-		return nil, err
+		return err
 	}
 
-	offsetStart, offsetEnd, err := rd.GetPageRangeForStrings(values, pageSize*2, pageNum)
+	offsetStart, offsetEnd, err := rd.GetPageRangeForStrings(values, vInfo.query.PageSize*2, vInfo.query.PageNum)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	valuesPage := values[offsetStart:offsetEnd]
 
@@ -111,20 +119,24 @@ func (key ZSetKey) getValues(pageNum int, pageSize int) ([]ZSetMember, error) {
 		zsetMember := valuesPage[i-1]
 		zsetScore, err := strconv.ParseInt(valuesPage[i], 0, 0)
 		if err != nil {
-			logger.Errorf("can't get convert %v score %v to string", zsetMember, zsetScore)
-			return nil, err
+			logger.Errorf("can't get convert %vInfo score %vInfo to string", zsetMember, zsetScore)
+			return err
 		}
 
-		zSetValues = append(zSetValues, ZSetMember{
-			Score: zsetScore,
-			Member: RedisValue{
-				Value:    zsetMember,
-				IsBinary: isBinary(zsetMember),
-			},
-		})
+		if matchStringValueWithMask(zsetMember, vInfo.query.Mask) {
+			zSetValues = append(zSetValues, ZSetMember{
+				Score: zsetScore,
+				Member: RedisValue{
+					Value:    zsetMember,
+					IsBinary: isBinary(zsetMember),
+				},
+			})
+		}
+
 	}
 
-	return zSetValues, nil
+	vInfo.values = zSetValues
+	return nil
 
 }
 

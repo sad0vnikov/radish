@@ -19,12 +19,10 @@ type HashValues struct {
 
 func (values *HashValues) Values() (interface{}, error) {
 	if !values.valuesLoaded {
-		loadedValues, err := values.key.getValues(values.query.Mask, values.query.PageNum, values.query.PageSize)
+		err := values.loadValues()
 		if err != nil {
 			return nil, err
 		}
-
-		values.values = loadedValues
 	}
 
 	return values.values, nil
@@ -32,11 +30,10 @@ func (values *HashValues) Values() (interface{}, error) {
 
 func (values *HashValues) PagesCount() (int, error) {
 	if !values.pagesCountLoaded {
-		pagesCount, err := values.key.getKeysCount(values.query.PageSize)
+		err := values.calculatePagesCount()
 		if err != nil {
 			return 0, err
 		}
-		values.pagesCount = pagesCount
 	}
 
 	return values.pagesCount, nil
@@ -60,45 +57,55 @@ func (key HashKey) Values(query *KeyValuesQuery) KeyValues {
 	}
 }
 
-//PagesCount returns Hash key values pages count
-func (key HashKey) getKeysCount(pageSize int) (int, error) {
-	conn, err := connector.GetByName(key.serverName, key.dbNum)
+//PagesCount returns Hash key vInfo pages count
+func (vInfo *HashValues) calculatePagesCount() error {
+	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	r, err := conn.Do("HLEN", key.key)
-	count, err := redis.Int(r, err)
+	count := 0
+	if vInfo.query.Mask == "*" {
+		r, err := conn.Do("HLEN", vInfo.key.key)
+		count, err = redis.Int(r, err)
+	} else {
+		if !vInfo.valuesLoaded {
+			err = vInfo.loadValues()
+		}
+		count = len(vInfo.values)
+	}
+
 	if err != nil {
 		logger.Error(err)
-		return 0, err
+		return err
 	}
 
-	return getValuesPagesCount(count, pageSize), err
+	vInfo.pagesCount = count
+	return nil
 }
 
 //Values returns Hash key Values page
-func (key HashKey) getValues(mask string, pageNum int, pageSize int) (map[string]RedisValue, error) {
-	conn, err := connector.GetByName(key.serverName, key.dbNum)
+func (vInfo *HashValues) loadValues() error {
+	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var (
 		values []string
 	)
 
-	r, err := conn.Do("HGETALL", key.key)
+	r, err := conn.Do("HGETALL", vInfo.key.key)
 	values, err = redis.Strings(r, err)
 	if err != nil {
 		logger.Error(err)
-		return nil, err
+		return err
 	}
 
-	offsetStart, offsetEnd, err := rd.GetPageRangeForStrings(values, pageSize*2, pageNum)
+	offsetStart, offsetEnd, err := rd.GetPageRangeForStrings(values, vInfo.query.PageSize*2, vInfo.query.PageNum)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	valuesPage := values[offsetStart:offsetEnd]
 
@@ -106,13 +113,16 @@ func (key HashKey) getValues(mask string, pageNum int, pageSize int) (map[string
 	for i := 1; i < len(valuesPage); i = i + 2 {
 		hashKey := valuesPage[i-1]
 		hashValue := valuesPage[i]
-		valuesMap[hashKey] = RedisValue{
-			Value:    hashValue,
-			IsBinary: isBinary(hashValue),
+		if matchStringValueWithMask(hashKey, vInfo.query.Mask) {
+			valuesMap[hashKey] = RedisValue{
+				Value:    hashValue,
+				IsBinary: isBinary(hashValue),
+			}
 		}
 	}
 
-	return valuesMap, nil
+	vInfo.values = valuesMap
+	return nil
 }
 
 //HashKeyExists Hash has given key

@@ -28,7 +28,7 @@ func TestGetKeysByMask(t *testing.T) {
 	}
 
 	if !checkSlicesAreEqual(result, []string{"aa", "ab", "ac"}) {
-		t.Errorf("got invalid keys list: %v, expected %v", result, expectedResult)
+		t.Errorf("got invalid keys list: %vInfo, expected %vInfo", result, expectedResult)
 	}
 }
 
@@ -150,7 +150,7 @@ func compareTreeNodeSlices(a, b []KeyTreeNode) error {
 	}
 
 	for len(a) != len(b) {
-		return fmt.Errorf("the slices %v and %v have different length", a, b)
+		return fmt.Errorf("the slices %vInfo and %vInfo have different length", a, b)
 	}
 
 	for i := range a {
@@ -162,7 +162,7 @@ func compareTreeNodeSlices(a, b []KeyTreeNode) error {
 			}
 		}
 		if !prs {
-			return fmt.Errorf("element: %#v not found in list %#v", a[i], b)
+			return fmt.Errorf("element: %#vInfo not found in list %#vInfo", a[i], b)
 		}
 	}
 

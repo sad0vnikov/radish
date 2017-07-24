@@ -165,7 +165,7 @@ func GetKeyInfo(serverName string, dbNum uint8, key string) (Key, error) {
 	result, err := conn.Do("TYPE", key)
 	if err != nil {
 		logger.Critical(err)
-		return nil, fmt.Errorf("can't get key %v type", key)
+		return nil, fmt.Errorf("can't get key %vInfo type", key)
 	}
 
 	keyType, err := redis.String(result, err)

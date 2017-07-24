@@ -13,7 +13,7 @@ type SetKey struct {
 	key        string
 }
 
-//SetValues represents set values
+//SetValues represents set vInfo
 type SetValues struct {
 	values          []RedisValue
 	pagesCount      int
@@ -23,28 +23,27 @@ type SetValues struct {
 	key             SetKey
 }
 
-//Values returns values for a set
-func (v *SetValues) Values() (interface{}, error) {
-	if !v.valuesLoaded {
-		loadedValues, err := v.key.getSetValues(v.query.PageNum, v.query.PageSize)
+//Values returns vInfo for a set
+func (vInfo *SetValues) Values() (interface{}, error) {
+	if !vInfo.valuesLoaded {
+		err := vInfo.loadSetValues()
 		if err != nil {
 			return nil, err
 		}
-		v.values = loadedValues
 	}
-	return v.values, nil
+	return vInfo.values, nil
 }
 
-//PagesCount returns pagesCount for set values
-func (v *SetValues) PagesCount() (int, error) {
-	if !v.pageCountLoaded {
-		pagesCount, err := v.key.getPagesCount(v.query.PageSize)
+//PagesCount returns pagesCount for set vInfo
+func (vInfo *SetValues) PagesCount() (int, error) {
+	if !vInfo.pageCountLoaded {
+		pagesCount, err := vInfo.calculatePagesCount()
 		if err != nil {
 			return 0, err
 		}
-		v.pagesCount = pagesCount
+		vInfo.pagesCount = pagesCount
 	}
-	return v.pagesCount, nil
+	return vInfo.pagesCount, nil
 }
 
 //KeyType returns Redis SET type
@@ -61,57 +60,71 @@ func (key SetKey) Values(query *KeyValuesQuery) KeyValues {
 	}
 }
 
-//PagesCount returns Redis SET values pages count
-func (key SetKey) getPagesCount(pageSize int) (int, error) {
-	conn, err := connector.GetByName(key.serverName, key.dbNum)
+//PagesCount returns Redis SET vInfo pages count
+func (vInfo *SetValues) calculatePagesCount() (int, error) {
+	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
 	if err != nil {
 		return 0, err
 	}
 
-	r, err := conn.Do("SCARD", key.key)
-	count, err := redis.Int(r, err)
+	count := 0
+	if vInfo.query.Mask == "*" {
+		r, err := conn.Do("SCARD", vInfo.key.key)
+		count, err = redis.Int(r, err)
+	} else {
+		if !vInfo.valuesLoaded {
+			err = vInfo.loadSetValues()
+		}
+		count = len(vInfo.values)
+	}
+
 	if err != nil {
 		logger.Error(err)
 		return 0, err
 	}
 
-	return getValuesPagesCount(count, pageSize), nil
+	return getValuesPagesCount(count, vInfo.query.PageSize), nil
 }
 
-//Values returns a SET values page
-func (key SetKey) getSetValues(pageNum int, pageSize int) ([]RedisValue, error) {
-	conn, err := connector.GetByName(key.serverName, key.dbNum)
+//Values returns a SET vInfo page
+func (vInfo *SetValues) loadSetValues() error {
+	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
 	if err != nil {
 		logger.Error(err)
-		return nil, err
+		return err
 	}
 
 	var (
 		values []string
 	)
 
-	r, err := conn.Do("SMEMBERS", key.key)
+	r, err := conn.Do("SMEMBERS", vInfo.key.key)
 	values, err = redis.Strings(r, err)
 	if err != nil {
 		logger.Error(err)
-		return nil, err
+		return err
 	}
-	offsetStart, offsetEnd, err := rd.GetPageRangeForStrings(values, pageSize, pageNum)
+	offsetStart, offsetEnd, err := rd.GetPageRangeForStrings(values, vInfo.query.PageSize, vInfo.query.PageNum)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	valuesPageStrings := values[offsetStart:offsetEnd]
 
 	valuesPage := make([]RedisValue, len(valuesPageStrings))
-	for i, s := range valuesPageStrings {
-		valuesPage[i] = RedisValue{
-			Value:    s,
-			IsBinary: isBinary(s),
+	i := 0
+	for _, s := range valuesPageStrings {
+		if matchStringValueWithMask(s, vInfo.query.Mask) {
+			valuesPage[i] = RedisValue{
+				Value:    s,
+				IsBinary: isBinary(s),
+			}
+			i++
 		}
 	}
 
-	return valuesPage, nil
+	vInfo.values = valuesPage[:i]
+	return nil
 }
 
 //AddValueToSet adds a new member to a set

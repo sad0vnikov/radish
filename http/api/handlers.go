@@ -260,6 +260,11 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		}
 	}
 
+	mask := r.URL.Query().Get("mask")
+	if len(mask) == 0 {
+		mask = "*"
+	}
+
 	key, err := db.GetKeyInfo(serverName, dbNum, keyName)
 	if err != nil {
 		logger.Error(err)
@@ -268,6 +273,7 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 
 	vQuery := db.NewKeyValuesQuery()
 	vQuery.PageNum = pageNum
+	vQuery.Mask = mask
 	vInfo := key.Values(vQuery)
 
 	pagesCount, err := vInfo.PagesCount()

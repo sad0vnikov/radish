@@ -14,7 +14,7 @@ type StringKey struct {
 	key        string
 }
 
-//StringKeyValue stores String key values data
+//StringKeyValue stores String key vInfo data
 type StringKeyValue struct {
 	value       RedisValue
 	valueLoaded bool
@@ -22,7 +22,7 @@ type StringKeyValue struct {
 	key         StringKey
 }
 
-//Values returns StringKey values
+//Values returns StringKey vInfo
 func (values *StringKeyValue) Values() (interface{}, error) {
 
 	if !values.valueLoaded {
@@ -37,12 +37,12 @@ func (values *StringKeyValue) Values() (interface{}, error) {
 	return values.value, nil
 }
 
-//PagesCount returns StringKey values
+//PagesCount returns StringKey vInfo
 func (values *StringKeyValue) PagesCount() (int, error) {
 	return 1, nil
 }
 
-//Values returns String values object
+//Values returns String vInfo object
 func (key StringKey) Values(query *KeyValuesQuery) KeyValues {
 	return &StringKeyValue{query: query, key: key}
 }
@@ -74,13 +74,13 @@ func getStringKeyValue(serverName string, dbNum uint8, key string) (RedisValue, 
 	conn, err := connector.GetByName(serverName, dbNum)
 
 	if err != nil {
-		return RedisValue{}, fmt.Errorf("can't connect to server %v", serverName)
+		return RedisValue{}, fmt.Errorf("can't connect to server %vInfo", serverName)
 	}
 
 	result, err := conn.Do("GET", key)
 	if err != nil {
 		logger.Error(err)
-		return RedisValue{}, fmt.Errorf("can't get key %v value", key)
+		return RedisValue{}, fmt.Errorf("can't get key %vInfo value", key)
 	}
 
 	str, err := redis.String(result, err)

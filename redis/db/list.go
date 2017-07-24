@@ -5,7 +5,7 @@ import (
 	"github.com/sad0vnikov/radish/logger"
 )
 
-//ListValues stores List values data
+//ListValues stores List vInfo data
 type ListValues struct {
 	values           []ListMember
 	pagesCount       int
@@ -15,30 +15,29 @@ type ListValues struct {
 	key              ListKey
 }
 
-//Values returns redis List values page
-func (values *ListValues) Values() (interface{}, error) {
-	if !values.valuesLoaded {
-		loadedValues, err := values.key.getValuesForString(values.query.Mask, values.query.PageNum, values.query.PageSize)
+//Values returns redis List vInfo page
+func (vInfo *ListValues) Values() (interface{}, error) {
+	if !vInfo.valuesLoaded {
+		err := vInfo.loadValues()
 		if err != nil {
 			return nil, err
 		}
-		values.values = loadedValues
 	}
 
-	return values.values, nil
+	return vInfo.values, nil
 }
 
-//PagesCount returns List values pages count
-func (values *ListValues) PagesCount() (int, error) {
-	if !values.pagesCountLoaded {
-		pagesCount, err := values.key.calculatePagesCount(values.query.Mask, values.query.PageSize)
+//PagesCount returns List vInfo pages count
+func (vInfo *ListValues) PagesCount() (int, error) {
+	if !vInfo.pagesCountLoaded {
+		pagesCount, err := vInfo.calculatePagesCount()
 		if err != nil {
 			return 0, err
 		}
-		values.pagesCount = pagesCount
+		vInfo.pagesCount = pagesCount
 	}
 
-	return values.pagesCount, nil
+	return vInfo.pagesCount, nil
 }
 
 //ListKey is a key for redis List
@@ -67,51 +66,66 @@ type ListMember struct {
 	Value RedisValue
 }
 
-func (key *ListKey) calculatePagesCount(mask string, pageSize int) (int, error) {
-	conn, err := connector.GetByName(key.serverName, key.dbNum)
+func (vInfo *ListValues) calculatePagesCount() (int, error) {
+	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
 	if err != nil {
 		return 0, err
 	}
-	r, err := conn.Do("LLEN", key.key)
-	count, err := redis.Int(r, err)
+	count := 0
+	if vInfo.query.Mask == "*" {
+		r, err := conn.Do("LLEN", vInfo.key.key)
+		count, err = redis.Int(r, err)
+
+	} else {
+		if !vInfo.pagesCountLoaded {
+			err = vInfo.loadValues()
+		}
+		count = len(vInfo.values)
+	}
+
 	if err != nil {
 		logger.Error(err)
 		return 0, err
 	}
 
-	return getValuesPagesCount(count, pageSize), nil
+	return getValuesPagesCount(count, vInfo.query.PageSize), nil
 }
 
-//Values returns redis List values page
-func (key *ListKey) getValuesForString(mask string, pageNum, pageSize int) ([]ListMember, error) {
-	conn, err := connector.GetByName(key.serverName, key.dbNum)
+//Values returns redis List vInfo page
+func (vInfo *ListValues) loadValues() error {
+	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	pageStart := (pageNum - 1) * pageSize
-	pageEnd := pageNum*pageSize - 1
-	r, err := conn.Do("LRANGE", key.key, pageStart, pageEnd)
+	pageStart := (vInfo.query.PageNum - 1) * vInfo.query.PageSize
+	pageEnd := vInfo.query.PageNum*vInfo.query.PageSize - 1
+	r, err := conn.Do("LRANGE", vInfo.key.key, pageStart, pageEnd)
 	strings, err := redis.Strings(r, err)
 
 	if err != nil {
 		logger.Error(err)
-		return nil, err
+		return nil
 	}
 
 	var values = make([]ListMember, len(strings))
 	memberIndex := pageStart
-	for i, v := range strings {
-		rv := RedisValue{Value: v, IsBinary: isBinary(v)}
-		values[i] = ListMember{Value: rv, Index: memberIndex}
+	i := 0
+	for _, v := range strings {
+		if matchStringValueWithMask(v, vInfo.query.Mask) {
+			rv := RedisValue{Value: v, IsBinary: isBinary(v)}
+			values[i] = ListMember{Value: rv, Index: memberIndex}
+			i++
+		}
 		memberIndex++
 	}
 
-	return values, nil
+	vInfo.values = values[:i]
+	return nil
 }
 
 //InsertToListWithPos inserts a value at the given position
-//If there are values after the given index, they are moved to the right
+//If there are vInfo after the given index, they are moved to the right
 //If position greater then the last list index, the value will be added to the and of the list
 func InsertToListWithPos(serverName string, dbNum uint8, key, listValue string, position int) error {
 	conn, err := connector.GetByName(serverName, dbNum)
