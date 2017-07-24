@@ -6,7 +6,7 @@ import Html.Attributes exposing (..)
 import Update.Msg exposing (Msg(..))
 import Html.Events exposing (onClick, onInput)
 import View.Pagination exposing (drawPager)
-import View.Helpers exposing (drawIfFalse)
+import View.Helpers exposing (drawIfFalse, drawIfTrue)
 
 
 import Model.Model exposing (..)
@@ -155,7 +155,10 @@ hashKeyValues model values pagesCount currentPage =
    table [class "table hash-values"] [
      thead [] [
        th [class "key"] [text "key"],
-       th [class "value"] [text "value"],
+       th [class "value"] <| [
+          drawIfFalse model.valuesFilterShown <| text "value ",
+          drawIfFalse model.valuesFilterShown <| drawValuesFilterToggler model         
+        ] ++ [drawIfTrue model.valuesFilterShown <| drawValuesFilter model],
        th [class "buttons"] []
      ],
      tbody [] <| (Dict.values <| Dict.map (drawHashValueOrEditFields model) values) ++ (List.singleton <| maybeDrawHashValueAddFields model)
@@ -249,13 +252,32 @@ drawHashValueAddFields model =
     ]
   ]
 
+drawValuesFilter : Model -> Html Msg
+drawValuesFilter model =
+  div [class "input-group"] [
+    input [type_ "text", class "form-control", value model.valuesMask, onInput ValuesMaskChanged] [],
+    div [class "input-group-addon"] [drawValuesFilterToggler model]
+  ]
+
+drawValuesFilterToggler : Model -> Html Msg
+drawValuesFilterToggler model =
+  if model.valuesFilterShown then
+    a [href "#"] [i [class "fa fa-close", onClick HideValuesFilter] []]
+  else
+    a [href "#"] [i [class "fa fa-filter", onClick ShowValuesFilter] []]
+    
+    
+
 listKeyValues : Model -> (List ListRedisValue) -> Int -> Int -> Html Msg
 listKeyValues model values pagesCount currentPage = 
   div [] [
     table [class "table list-values"] [
       thead [] [
         th [class "index"] [text "index"],
-        th [class "value"] [text "value"],
+        th [class "value"] <| [
+          drawIfFalse model.valuesFilterShown <| text "value ",
+          drawIfFalse model.valuesFilterShown <| drawValuesFilterToggler model         
+        ] ++ [drawIfTrue model.valuesFilterShown <| drawValuesFilter model],
         th [class "buttons"] []
       ],
       tbody [] <| (List.map (drawListValueOrEditFields model) values) ++ (List.singleton <| maybeDrawListValueAddFields model)
@@ -359,7 +381,10 @@ setKeyValues model values pagesCount currentPage =
     table [class "table set-values"] [
       thead [] [
 
-        th [class "value"] [text "value"],
+        th [class "value"] <| [
+          drawIfFalse model.valuesFilterShown <| text "value ",
+          drawIfFalse model.valuesFilterShown <| drawValuesFilterToggler model         
+        ] ++ [drawIfTrue model.valuesFilterShown <| drawValuesFilter model],
         th [class "buttons"] []
       ],
       tbody [] <| (List.map (drawSetValueRowOrEditFields model) values) ++ (List.singleton <| maybeDrawSetValueAddFields model)
@@ -450,7 +475,10 @@ sortedSetValues model values pagesCount currentPage =
     table [class "table zset-values"] [
       thead [] [
         th [class "score"] [text "score"],
-        th [class "value"] [text "value"],
+        th [class "value"] <| [
+          drawIfFalse model.valuesFilterShown <| text "value ",
+          drawIfFalse model.valuesFilterShown <| drawValuesFilterToggler model         
+        ] ++ [drawIfTrue model.valuesFilterShown <| drawValuesFilter model],
         th [class "buttons"] []
       ],
       tbody [] <| (List.map (drawSortedSetValueRowOrEditFields model) values) ++ (List.singleton <| maybeDrawSortedSetAddFields model)

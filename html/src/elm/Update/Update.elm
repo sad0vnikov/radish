@@ -58,9 +58,22 @@ update msg model =
         (updatedModel, getKeysPage updatedModel)
     KeyChosen key ->
       let
-        updatedModel = {model | chosenKey = Just key, editingValue = Nothing, isAddingValue = False}
+        updatedModel = {model | chosenKey = Just key, editingValue = Nothing, 
+          isAddingValue = False, valuesMask = "*", valuesFilterShown = False}
       in
         (updatedModel, getKeyValues updatedModel 1)
+    ValuesMaskChanged mask ->
+      let 
+        updatedModel = {model | valuesMask = mask}
+      in
+        (updatedModel, getKeyValues updatedModel 1)
+    ShowValuesFilter ->
+      ({model | valuesFilterShown = True}, Cmd.none)
+    HideValuesFilter ->
+      let 
+        (updatedModel, msg) = update (ValuesMaskChanged "*") model
+      in
+      ({updatedModel | valuesFilterShown = False}, msg)
     ValuesPageChanged page ->
       (model, getKeyValues model page)
     UserConfirmation ->

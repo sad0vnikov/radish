@@ -25,6 +25,8 @@ type alias Model = {
   loadedValues: LoadedValues,
   
   keysMask: String,
+  valuesMask: String,
+  valuesFilterShown: Bool,
 
   chosenServer: Maybe String,
   chosenDatabaseNum: Int,  
@@ -190,6 +192,8 @@ initModel flags =
     loadedKeysTree = emptyKeysSubtree [],
     loadedValues = SingleRedisValue <| RedisValue "" StringRedisKey False,
     keysMask = "",
+    valuesMask = "*",
+    valuesFilterShown = False,
     chosenServer = Maybe.Nothing,   
     chosenDatabaseNum = 0, 
     chosenKey = Maybe.Nothing,

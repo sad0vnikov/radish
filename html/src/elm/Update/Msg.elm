@@ -12,6 +12,9 @@ type Msg = NoOp
   | ServersListLoaded (Result Http.Error (Dict String Server))
   | KeysPageLoaded (Result Http.Error LoadedKeys)
   | KeysMaskChanged String
+  | ValuesMaskChanged String
+  | ShowValuesFilter
+  | HideValuesFilter
   | KeysPageChanged Int
   | KeyChosen RedisKey
   | ValuesListUpdateInitialized

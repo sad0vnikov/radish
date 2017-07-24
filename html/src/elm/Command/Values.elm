@@ -20,6 +20,7 @@ getKeyValues model pageNum =
                     ++ "/keys/" ++ chosenKey 
                     ++ "/values?page=" ++ (toString pageNum)
                     ++ "&db=" ++ (toString model.chosenDatabaseNum)
+                    ++ "&mask=" ++ (model.valuesMask)
             in
                 Http.send KeyValuesLoaded (Http.get url valuesDecoder)
         Nothing ->
@@ -189,8 +190,8 @@ decodeListValues =
         Decode.list 
             <| Decode.map3 ListRedisValue 
                 (Decode.field "Index" Decode.int) 
-                (Decode.field "Value" Decode.string) 
-                (Decode.field "IsBinary" Decode.bool)
+                (Decode.field "Value" <| Decode.field "Value" Decode.string) 
+                (Decode.field "Value" <| Decode.field "IsBinary" Decode.bool)
 
 decodeHashValues : Decode.Decoder RedisValues
 decodeHashValues = 
