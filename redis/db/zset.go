@@ -8,6 +8,37 @@ import (
 	rd "github.com/sad0vnikov/radish/redis"
 )
 
+type ZSetValues struct {
+	values           []ZSetMember
+	pagesCount       int
+	valuesLoaded     bool
+	pagesCountLoaded bool
+	query            *KeyValuesQuery
+	key              ZSetKey
+}
+
+func (v *ZSetValues) Values() (interface{}, error) {
+	if !v.valuesLoaded {
+		loadedValues, err := v.key.getValues(v.query.PageNum, v.query.PageSize)
+		if err != nil {
+			return nil, err
+		}
+		v.values = loadedValues
+	}
+	return v.values, nil
+}
+
+func (v *ZSetValues) PagesCount() (int, error) {
+	if !v.pagesCountLoaded {
+		pagesCount, err := v.key.getPagesCount(v.query.PageSize)
+		if err != nil {
+			return 0, err
+		}
+		v.pagesCount = pagesCount
+	}
+	return v.pagesCount, nil
+}
+
 //ZSetKey is a Redis ZSET key
 type ZSetKey struct {
 	serverName string
@@ -26,8 +57,16 @@ func (key ZSetKey) KeyType() string {
 	return RedisZset
 }
 
+func (key ZSetKey) Values(query *KeyValuesQuery) KeyValues {
+	return &ZSetValues{
+		key:   key,
+		query: query,
+	}
+
+}
+
 //PagesCount returns ZSET key values pages count
-func (key ZSetKey) PagesCount(pageSize int) (int, error) {
+func (key ZSetKey) getPagesCount(pageSize int) (int, error) {
 	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return 0, err
@@ -43,7 +82,7 @@ func (key ZSetKey) PagesCount(pageSize int) (int, error) {
 }
 
 //Values returns ZSET values page
-func (key ZSetKey) Values(pageNum int, pageSize int) (interface{}, error) {
+func (key ZSetKey) getValues(pageNum int, pageSize int) ([]ZSetMember, error) {
 	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return nil, err

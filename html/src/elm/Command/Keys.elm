@@ -117,7 +117,7 @@ deleteKey key model =
                     ++ chosenServer 
                     ++ "/keys/" 
                     ++ key
-                    ++ "&db=" ++ toString model.chosenDatabaseNum
+                    ++ "?db=" ++ toString model.chosenDatabaseNum
             in
                 Http.send KeyDeleted (delete url)
         Nothing ->

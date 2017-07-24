@@ -5,11 +5,60 @@ import (
 	"github.com/sad0vnikov/radish/logger"
 )
 
+//ListValues stores List values data
+type ListValues struct {
+	values           []ListMember
+	pagesCount       int
+	pagesCountLoaded bool
+	valuesLoaded     bool
+	query            *KeyValuesQuery
+	key              ListKey
+}
+
+//Values returns redis List values page
+func (values *ListValues) Values() (interface{}, error) {
+	if !values.valuesLoaded {
+		loadedValues, err := values.key.getValuesForString(values.query.Mask, values.query.PageNum, values.query.PageSize)
+		if err != nil {
+			return nil, err
+		}
+		values.values = loadedValues
+	}
+
+	return values.values, nil
+}
+
+//PagesCount returns List values pages count
+func (values *ListValues) PagesCount() (int, error) {
+	if !values.pagesCountLoaded {
+		pagesCount, err := values.key.calculatePagesCount(values.query.Mask, values.query.PageSize)
+		if err != nil {
+			return 0, err
+		}
+		values.pagesCount = pagesCount
+	}
+
+	return values.pagesCount, nil
+}
+
 //ListKey is a key for redis List
 type ListKey struct {
 	key        string
 	serverName string
 	dbNum      uint8
+}
+
+//Values returns ListValues object
+func (key ListKey) Values(query *KeyValuesQuery) KeyValues {
+	return &ListValues{
+		key:   key,
+		query: query,
+	}
+}
+
+//KeyType returns List key type
+func (key ListKey) KeyType() string {
+	return RedisList
 }
 
 //ListMember represents List member value
@@ -18,13 +67,7 @@ type ListMember struct {
 	Value RedisValue
 }
 
-//KeyType returns List key type
-func (key ListKey) KeyType() string {
-	return RedisList
-}
-
-//PagesCount returns List values pages count
-func (key ListKey) PagesCount(pageSize int) (int, error) {
+func (key *ListKey) calculatePagesCount(mask string, pageSize int) (int, error) {
 	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return 0, err
@@ -40,10 +83,10 @@ func (key ListKey) PagesCount(pageSize int) (int, error) {
 }
 
 //Values returns redis List values page
-func (key ListKey) Values(pageNum, pageSize int) (interface{}, error) {
+func (key *ListKey) getValuesForString(mask string, pageNum, pageSize int) ([]ListMember, error) {
 	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	pageStart := (pageNum - 1) * pageSize

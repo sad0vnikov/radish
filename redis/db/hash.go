@@ -8,6 +8,40 @@ import (
 	rd "github.com/sad0vnikov/radish/redis"
 )
 
+type HashValues struct {
+	values           map[string]RedisValue
+	pagesCount       int
+	valuesLoaded     bool
+	pagesCountLoaded bool
+	query            *KeyValuesQuery
+	key              HashKey
+}
+
+func (values *HashValues) Values() (interface{}, error) {
+	if !values.valuesLoaded {
+		loadedValues, err := values.key.getValues(values.query.Mask, values.query.PageNum, values.query.PageSize)
+		if err != nil {
+			return nil, err
+		}
+
+		values.values = loadedValues
+	}
+
+	return values.values, nil
+}
+
+func (values *HashValues) PagesCount() (int, error) {
+	if !values.pagesCountLoaded {
+		pagesCount, err := values.key.getKeysCount(values.query.PageSize)
+		if err != nil {
+			return 0, err
+		}
+		values.pagesCount = pagesCount
+	}
+
+	return values.pagesCount, nil
+}
+
 type HashKey struct {
 	key        string
 	serverName string
@@ -19,8 +53,15 @@ func (key HashKey) KeyType() string {
 	return RedisHash
 }
 
+func (key HashKey) Values(query *KeyValuesQuery) KeyValues {
+	return &HashValues{
+		query: query,
+		key:   key,
+	}
+}
+
 //PagesCount returns Hash key values pages count
-func (key HashKey) PagesCount(pageSize int) (int, error) {
+func (key HashKey) getKeysCount(pageSize int) (int, error) {
 	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return 0, err
@@ -37,7 +78,7 @@ func (key HashKey) PagesCount(pageSize int) (int, error) {
 }
 
 //Values returns Hash key Values page
-func (key HashKey) Values(pageNum int, pageSize int) (interface{}, error) {
+func (key HashKey) getValues(mask string, pageNum int, pageSize int) (map[string]RedisValue, error) {
 	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return nil, err

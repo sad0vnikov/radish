@@ -33,7 +33,7 @@ deleteValue model valueToDelete =
                 url = model.api.url 
                     ++ "/servers/" ++ chosenServer 
                     ++ "/keys/" ++ valueDeleteUrlPath chosenKey (getLoadedKeyType model.loadedValues) valueToDelete
-                    ++ "&db=" ++ toString model.chosenDatabaseNum
+                    ++ "?db=" ++ toString model.chosenDatabaseNum
             in
                 Http.send ValueDeleted (delete url)
         Nothing ->

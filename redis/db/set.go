@@ -13,13 +13,56 @@ type SetKey struct {
 	key        string
 }
 
+//SetValues represents set values
+type SetValues struct {
+	values          []RedisValue
+	pagesCount      int
+	valuesLoaded    bool
+	pageCountLoaded bool
+	query           *KeyValuesQuery
+	key             SetKey
+}
+
+//Values returns values for a set
+func (v *SetValues) Values() (interface{}, error) {
+	if !v.valuesLoaded {
+		loadedValues, err := v.key.getSetValues(v.query.PageNum, v.query.PageSize)
+		if err != nil {
+			return nil, err
+		}
+		v.values = loadedValues
+	}
+	return v.values, nil
+}
+
+//PagesCount returns pagesCount for set values
+func (v *SetValues) PagesCount() (int, error) {
+	if !v.pageCountLoaded {
+		pagesCount, err := v.key.getPagesCount(v.query.PageSize)
+		if err != nil {
+			return 0, err
+		}
+		v.pagesCount = pagesCount
+	}
+	return v.pagesCount, nil
+}
+
 //KeyType returns Redis SET type
 func (key SetKey) KeyType() string {
 	return RedisSet
 }
 
+//Values returns SetValues object
+func (key SetKey) Values(query *KeyValuesQuery) KeyValues {
+
+	return &SetValues{
+		key:   key,
+		query: query,
+	}
+}
+
 //PagesCount returns Redis SET values pages count
-func (key SetKey) PagesCount(pageSize int) (int, error) {
+func (key SetKey) getPagesCount(pageSize int) (int, error) {
 	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		return 0, err
@@ -36,7 +79,7 @@ func (key SetKey) PagesCount(pageSize int) (int, error) {
 }
 
 //Values returns a SET values page
-func (key SetKey) Values(pageNum int, pageSize int) (interface{}, error) {
+func (key SetKey) getSetValues(pageNum int, pageSize int) ([]RedisValue, error) {
 	conn, err := connector.GetByName(key.serverName, key.dbNum)
 	if err != nil {
 		logger.Error(err)

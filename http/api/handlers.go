@@ -135,11 +135,13 @@ func GetKeyInfo(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 
 	response := keyInfoResponse{}
 	response.PageSize = defaultPageSize
-	response.PagesCount, err = key.PagesCount(defaultPageSize)
+
+	pagesCount, err := key.Values(db.NewKeyValuesQuery()).PagesCount()
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
+	response.PagesCount = pagesCount
 	response.KeyType = key.KeyType()
 
 	return response, nil
@@ -264,13 +266,17 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	v, err := key.Values(pageNum, defaultPageSize)
+	vQuery := db.NewKeyValuesQuery()
+	vQuery.PageNum = pageNum
+	vInfo := key.Values(vQuery)
+
+	pagesCount, err := vInfo.PagesCount()
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
 
-	pagesCount, err := key.PagesCount(defaultPageSize)
+	v, err := vInfo.Values()
 	if err != nil {
 		logger.Error(err)
 		return nil, err

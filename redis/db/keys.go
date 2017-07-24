@@ -33,8 +33,7 @@ const (
 
 //Key is a redis key representation for Radish
 type Key interface {
-	Values(pageNum, pageSize int) (interface{}, error)
-	PagesCount(pageSize int) (int, error)
+	Values(*KeyValuesQuery) KeyValues
 	KeyType() string
 }
 

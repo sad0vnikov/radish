@@ -14,14 +14,37 @@ type StringKey struct {
 	key        string
 }
 
-//Values returns StringKey values
-func (key StringKey) Values(pageNum int, pageSize int) (interface{}, error) {
-	return getStringKeyValue(key.serverName, key.dbNum, key.key)
+//StringKeyValue stores String key values data
+type StringKeyValue struct {
+	value       RedisValue
+	valueLoaded bool
+	query       *KeyValuesQuery
+	key         StringKey
 }
 
-//PagesCount returns StringKey pages count
-func (StringKey) PagesCount(pageSize int) (int, error) {
+//Values returns StringKey values
+func (values *StringKeyValue) Values() (interface{}, error) {
+
+	if !values.valueLoaded {
+		value, err := getStringKeyValue(values.key.serverName, values.key.dbNum, values.key.key)
+		if err != nil {
+			return nil, err
+		}
+		values.valueLoaded = true
+		values.value = value
+	}
+
+	return values.value, nil
+}
+
+//PagesCount returns StringKey values
+func (values *StringKeyValue) PagesCount() (int, error) {
 	return 1, nil
+}
+
+//Values returns String values object
+func (key StringKey) Values(query *KeyValuesQuery) KeyValues {
+	return &StringKeyValue{query: query, key: key}
 }
 
 //KeyType returns redis key type
