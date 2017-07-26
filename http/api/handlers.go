@@ -24,9 +24,10 @@ func GetServersList(w http.ResponseWriter, r *http.Request) (interface{}, error)
 }
 
 type getKeysByMaskResponse struct {
-	Keys       []string
-	Page       int
-	PagesCount int
+	Keys           []string
+	FoundKeysCount int
+	Page           int
+	PagesCount     int
 }
 
 const defaultPageSize = 100
@@ -91,8 +92,9 @@ func GetKeysByMask(w http.ResponseWriter, r *http.Request) (interface{}, error) 
 
 	keysPage := keys[pageOffsetStart:pageOffsetEnd]
 	pagesCount := int(math.Ceil(float64(len(keys)) / float64(pageSize)))
+	keysCount := len(keys)
 
-	responseContents := getKeysByMaskResponse{Keys: keysPage, Page: pageNumber, PagesCount: pagesCount}
+	responseContents := getKeysByMaskResponse{Keys: keysPage, Page: pageNumber, PagesCount: pagesCount, FoundKeysCount: keysCount}
 
 	return responseContents, nil
 }
