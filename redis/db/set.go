@@ -15,12 +15,13 @@ type SetKey struct {
 
 //SetValues represents set vInfo
 type SetValues struct {
-	values          []RedisValue
-	pagesCount      int
-	valuesLoaded    bool
-	pageCountLoaded bool
-	query           *KeyValuesQuery
-	key             SetKey
+	values           []RedisValue
+	pagesCount       int
+	valuesLoaded     bool
+	pageCountLoaded  bool
+	totalValuesCount int
+	query            *KeyValuesQuery
+	key              SetKey
 }
 
 //Values returns vInfo for a set
@@ -44,6 +45,15 @@ func (vInfo *SetValues) PagesCount() (int, error) {
 		vInfo.pagesCount = pagesCount
 	}
 	return vInfo.pagesCount, nil
+}
+
+func (vInfo *SetValues) TotalValuesCount() (int, error) {
+	var err error
+	if !vInfo.valuesLoaded {
+		err = vInfo.loadSetValues()
+	}
+
+	return vInfo.totalValuesCount, err
 }
 
 //KeyType returns Redis SET type
@@ -112,18 +122,26 @@ func (vInfo *SetValues) loadSetValues() error {
 	valuesPageStrings := values[offsetStart:offsetEnd]
 
 	valuesPage := make([]RedisValue, len(valuesPageStrings))
-	i := 0
-	for _, s := range valuesPageStrings {
-		if matchStringValueWithMask(s, vInfo.query.Mask) {
-			valuesPage[i] = RedisValue{
+	maskedValuesCount := 0
+	pageIndex := 0
+	for i, s := range values {
+		matchesMask := matchStringValueWithMask(s, vInfo.query.Mask)
+		if matchesMask && i >= offsetStart && i <= offsetEnd {
+			valuesPage[pageIndex] = RedisValue{
 				Value:    s,
 				IsBinary: isBinary(s),
 			}
-			i++
+			pageIndex++
 		}
+
+		if matchesMask {
+			maskedValuesCount++
+		}
+
 	}
 
-	vInfo.values = valuesPage[:i]
+	vInfo.values = valuesPage
+	vInfo.totalValuesCount = maskedValuesCount
 	return nil
 }
 

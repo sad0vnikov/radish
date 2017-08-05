@@ -42,6 +42,10 @@ func (values *StringKeyValue) PagesCount() (int, error) {
 	return 1, nil
 }
 
+func (values *StringKeyValue) TotalValuesCount() (int, error) {
+	return 1, nil
+}
+
 //Values returns String vInfo object
 func (key StringKey) Values(query *KeyValuesQuery) KeyValues {
 	return &StringKeyValue{query: query, key: key}

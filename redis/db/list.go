@@ -11,6 +11,7 @@ type ListValues struct {
 	pagesCount       int
 	pagesCountLoaded bool
 	valuesLoaded     bool
+	totalValuesCount int
 	query            *KeyValuesQuery
 	key              ListKey
 }
@@ -40,6 +41,14 @@ func (vInfo *ListValues) PagesCount() (int, error) {
 	return vInfo.pagesCount, nil
 }
 
+func (values *ListValues) TotalValuesCount() (int, error) {
+	var err error
+	if !values.valuesLoaded {
+		err = values.loadValues()
+	}
+	return values.totalValuesCount, err
+}
+
 //ListKey is a key for redis List
 type ListKey struct {
 	key        string
@@ -67,21 +76,19 @@ type ListMember struct {
 }
 
 func (vInfo *ListValues) calculatePagesCount() (int, error) {
-	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
-	if err != nil {
-		return 0, err
-	}
-	count := 0
+	var err error
 	if vInfo.query.Mask == "*" {
-		r, err := conn.Do("LLEN", vInfo.key.key)
-		count, err = redis.Int(r, err)
-
+		err = vInfo.loadUnmaskedValuesCount()
+		if err != nil {
+			return 0, err
+		}
 	} else {
 		if !vInfo.pagesCountLoaded {
 			err = vInfo.loadValues()
 		}
-		count = len(vInfo.values)
 	}
+
+	count := vInfo.totalValuesCount
 
 	if err != nil {
 		logger.Error(err)
@@ -93,6 +100,17 @@ func (vInfo *ListValues) calculatePagesCount() (int, error) {
 
 //Values returns redis List vInfo page
 func (vInfo *ListValues) loadValues() error {
+	var err error
+	if vInfo.query.Mask == "*" {
+		err = vInfo.loadUnmaskedValues()
+	} else {
+		err = vInfo.loadMaskedValues()
+	}
+
+	return err
+}
+
+func (vInfo *ListValues) loadUnmaskedValues() error {
 	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
 	if err != nil {
 		return err
@@ -105,23 +123,68 @@ func (vInfo *ListValues) loadValues() error {
 
 	if err != nil {
 		logger.Error(err)
-		return nil
+		return err
 	}
 
 	var values = make([]ListMember, len(strings))
 	memberIndex := pageStart
+	for i, v := range strings {
+		rv := RedisValue{Value: v, IsBinary: isBinary(v)}
+		values[i] = ListMember{Value: rv, Index: memberIndex}
+		memberIndex++
+	}
+
+	vInfo.values = values
+	err = vInfo.loadUnmaskedValuesCount()
+	return err
+}
+
+func (vInfo *ListValues) loadMaskedValues() error {
+	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
+	if err != nil {
+		return err
+	}
+
+	pageStart := (vInfo.query.PageNum - 1) * vInfo.query.PageSize
+	pageEnd := vInfo.query.PageNum*vInfo.query.PageSize - 1
+	r, err := conn.Do("LRANGE", vInfo.key.key, pageStart, -1)
+	strings, err := redis.Strings(r, err)
+
+	if err != nil {
+		logger.Error(err)
+		return nil
+	}
+
+	var valuesPage = make([]ListMember, vInfo.query.PageSize)
+	memberIndex := pageStart
+	maskedValuesCount := 0
 	i := 0
 	for _, v := range strings {
 		if matchStringValueWithMask(v, vInfo.query.Mask) {
 			rv := RedisValue{Value: v, IsBinary: isBinary(v)}
-			values[i] = ListMember{Value: rv, Index: memberIndex}
+			if i >= pageStart && i <= pageEnd {
+				valuesPage[i] = ListMember{Value: rv, Index: memberIndex}
+			}
 			i++
+			maskedValuesCount++
 		}
 		memberIndex++
 	}
 
-	vInfo.values = values[:i]
+	vInfo.values = valuesPage
+	vInfo.totalValuesCount = maskedValuesCount
 	return nil
+}
+
+func (vInfo *ListValues) loadUnmaskedValuesCount() error {
+	conn, err := connector.GetByName(vInfo.key.serverName, vInfo.key.dbNum)
+	if err != nil {
+		return err
+	}
+	r, err := conn.Do("LLEN", vInfo.key.key)
+	count, err := redis.Int(r, err)
+	vInfo.totalValuesCount = count
+	return err
 }
 
 //InsertToListWithPos inserts a value at the given position

@@ -203,31 +203,35 @@ type singleValueResponse struct {
 }
 
 type listValuesResponse struct {
-	KeyType    string
-	Values     []db.ListMember
-	PageNum    int
-	PagesCount int
+	KeyType          string
+	Values           []db.ListMember
+	PageNum          int
+	PagesCount       int
+	FoundValuesCount int
 }
 
 type hashValuesResponse struct {
-	KeyType    string
-	Values     map[string]db.RedisValue
-	PageNum    int
-	PagesCount int
+	KeyType          string
+	Values           map[string]db.RedisValue
+	PageNum          int
+	PagesCount       int
+	FoundValuesCount int
 }
 
 type setValuesResponse struct {
-	KeyType    string
-	Values     []db.RedisValue
-	PageNum    int
-	PagesCount int
+	KeyType          string
+	Values           []db.RedisValue
+	PageNum          int
+	PagesCount       int
+	FoundValuesCount int
 }
 
 type zsetValuesResponse struct {
-	KeyType    string
-	Values     []db.ZSetMember
-	PageNum    int
-	PagesCount int
+	KeyType          string
+	Values           []db.ZSetMember
+	PageNum          int
+	PagesCount       int
+	FoundValuesCount int
 }
 
 //GetKeyValues returns a list of key values
@@ -310,6 +314,11 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		}
 		response.PageNum = pageNum
 		response.PagesCount = pagesCount
+		valuesCount, err := vInfo.TotalValuesCount()
+		response.FoundValuesCount = valuesCount
+		if err != nil {
+			return nil, err
+		}
 		return response, nil
 
 	case db.RedisZset:
@@ -323,6 +332,11 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		}
 		response.PageNum = pageNum
 		response.PagesCount = pagesCount
+		valuesCount, err := vInfo.TotalValuesCount()
+		response.FoundValuesCount = valuesCount
+		if err != nil {
+			return nil, err
+		}
 		return response, nil
 	case db.RedisHash:
 		response := hashValuesResponse{}
@@ -335,6 +349,11 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		}
 		response.PageNum = pageNum
 		response.PagesCount = pagesCount
+		valuesCount, err := vInfo.TotalValuesCount()
+		response.FoundValuesCount = valuesCount
+		if err != nil {
+			return nil, err
+		}
 		return response, nil
 	case db.RedisSet:
 		response := setValuesResponse{}
@@ -347,6 +366,11 @@ func GetKeyValues(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 		}
 		response.PageNum = pageNum
 		response.PagesCount = pagesCount
+		valuesCount, err := vInfo.TotalValuesCount()
+		response.FoundValuesCount = valuesCount
+		if err != nil {
+			return nil, err
+		}
 		return response, nil
 
 	default:

@@ -12,6 +12,7 @@ type HashValues struct {
 	values           map[string]RedisValue
 	pagesCount       int
 	valuesLoaded     bool
+	totalValuesCount int
 	pagesCountLoaded bool
 	query            *KeyValuesQuery
 	key              HashKey
@@ -37,6 +38,14 @@ func (values *HashValues) PagesCount() (int, error) {
 	}
 
 	return values.pagesCount, nil
+}
+
+func (vInfo *HashValues) TotalValuesCount() (int, error) {
+	var err error
+	if !vInfo.valuesLoaded {
+		err = vInfo.loadValues()
+	}
+	return vInfo.totalValuesCount, err
 }
 
 type HashKey struct {
@@ -72,7 +81,7 @@ func (vInfo *HashValues) calculatePagesCount() error {
 		if !vInfo.valuesLoaded {
 			err = vInfo.loadValues()
 		}
-		count = len(vInfo.values)
+		count = vInfo.totalValuesCount
 	}
 
 	if err != nil {
@@ -80,7 +89,7 @@ func (vInfo *HashValues) calculatePagesCount() error {
 		return err
 	}
 
-	vInfo.pagesCount = count
+	vInfo.pagesCount = getValuesPagesCount(count, vInfo.query.PageSize)
 	return nil
 }
 
@@ -107,20 +116,25 @@ func (vInfo *HashValues) loadValues() error {
 	if err != nil {
 		return err
 	}
-	valuesPage := values[offsetStart:offsetEnd]
 
 	valuesMap := make(map[string]RedisValue)
-	for i := 1; i < len(valuesPage); i = i + 2 {
-		hashKey := valuesPage[i-1]
-		hashValue := valuesPage[i]
-		if matchStringValueWithMask(hashKey, vInfo.query.Mask) {
+	matchingValuesCount := 0
+	for i := 1; i < len(values); i = i + 2 {
+		hashKey := values[i-1]
+		hashValue := values[i]
+		matchesMask := matchStringValueWithMask(hashKey, vInfo.query.Mask)
+		if (matchesMask) && i >= offsetStart && i <= offsetEnd {
 			valuesMap[hashKey] = RedisValue{
 				Value:    hashValue,
 				IsBinary: isBinary(hashValue),
 			}
 		}
+		if matchesMask {
+			matchingValuesCount++
+		}
 	}
 
+	vInfo.totalValuesCount = matchingValuesCount
 	vInfo.values = valuesMap
 	return nil
 }

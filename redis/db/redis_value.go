@@ -13,6 +13,7 @@ const defaultPageSize = 100
 type KeyValues interface {
 	Values() (interface{}, error)
 	PagesCount() (int, error)
+	TotalValuesCount() (int, error)
 }
 
 type KeyValuesQuery struct {

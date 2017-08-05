@@ -13,6 +13,7 @@ type ZSetValues struct {
 	pagesCount       int
 	valuesLoaded     bool
 	pagesCountLoaded bool
+	totalValuesCount int
 	query            *KeyValuesQuery
 	key              ZSetKey
 }
@@ -36,6 +37,14 @@ func (v *ZSetValues) PagesCount() (int, error) {
 		v.pagesCount = pagesCount
 	}
 	return v.pagesCount, nil
+}
+
+func (vInfo *ZSetValues) TotalValuesCount() (int, error) {
+	var err error
+	if !vInfo.valuesLoaded {
+		err = vInfo.loadValues()
+	}
+	return vInfo.totalValuesCount, err
 }
 
 //ZSetKey is a Redis ZSET key
@@ -79,7 +88,7 @@ func (vInfo *ZSetValues) calculatePagesCount() (int, error) {
 		if !vInfo.valuesLoaded {
 			err = vInfo.loadValues()
 		}
-		count = len(vInfo.values)
+		count = vInfo.totalValuesCount
 	}
 
 	if err != nil {
@@ -107,23 +116,26 @@ func (vInfo *ZSetValues) loadValues() error {
 		return err
 	}
 
-	offsetStart, offsetEnd, err := rd.GetPageRangeForStrings(values, vInfo.query.PageSize*2, vInfo.query.PageNum)
-
 	if err != nil {
 		return err
 	}
-	valuesPage := values[offsetStart:offsetEnd]
 
 	var zSetValues []ZSetMember
-	for i := 1; i < len(valuesPage); i = i + 2 {
-		zsetMember := valuesPage[i-1]
-		zsetScore, err := strconv.ParseInt(valuesPage[i], 0, 0)
+	maskedValuesCount := 0
+	offsetStart, offsetEnd, err := rd.GetPageRangeForStrings(values, vInfo.query.PageSize*2, vInfo.query.PageNum)
+	if err != nil {
+		return err
+	}
+	for i := 1; i < len(values); i = i + 2 {
+		zsetMember := values[i-1]
+		zsetScore, err := strconv.ParseInt(values[i], 0, 0)
 		if err != nil {
 			logger.Errorf("can't get convert %vInfo score %vInfo to string", zsetMember, zsetScore)
 			return err
 		}
 
-		if matchStringValueWithMask(zsetMember, vInfo.query.Mask) {
+		matchesMask := matchStringValueWithMask(zsetMember, vInfo.query.Mask)
+		if matchesMask && i >= offsetStart && i <= offsetEnd {
 			zSetValues = append(zSetValues, ZSetMember{
 				Score: zsetScore,
 				Member: RedisValue{
@@ -133,9 +145,16 @@ func (vInfo *ZSetValues) loadValues() error {
 			})
 		}
 
+		if matchesMask {
+			maskedValuesCount++
+		}
+
 	}
 
+	vInfo.totalValuesCount = maskedValuesCount
+
 	vInfo.values = zSetValues
+
 	return nil
 
 }
