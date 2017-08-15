@@ -84,7 +84,7 @@ drawTotalValuesCount : LoadedValues -> Html Msg
 drawTotalValuesCount loadedValues =
   case loadedValues of
     MultipleRedisValues valuesPage ->
-      div [class "pull-right"] [
+      div [class "label label-default pull-right"] [
         text "Found ",
         text <| toString valuesPage.totalValuesCount,
         text " values"

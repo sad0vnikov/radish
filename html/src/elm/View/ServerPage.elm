@@ -133,13 +133,13 @@ drawListKeysPanel model =
         ]   
     ],
     div [class "panel-body keys-list", attribute "style" (keysListHeightAttribute model)] [
-        div [class "pull-right"] [
+        div [class "pull-right label label-default"] [
           text "Found ",
           text <| toString model.loadedKeys.foundKeysCount,
           text " keys"
         ],
         div [class "clearfix"] [],
-        div [class "list-group"]
+        div [class "top-buffer list-group"]
           (List.map (\key ->
             a [
               class ("list-group-item break-word " ++ (if model.chosenKey == Just key then "active" else "")), 
