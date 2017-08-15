@@ -133,6 +133,12 @@ drawListKeysPanel model =
         ]   
     ],
     div [class "panel-body keys-list", attribute "style" (keysListHeightAttribute model)] [
+        div [class "pull-right"] [
+          text "Found ",
+          text <| toString model.loadedKeys.foundKeysCount,
+          text " keys"
+        ],
+        div [class "clearfix"] [],
         div [class "list-group"]
           (List.map (\key ->
             a [

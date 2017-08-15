@@ -61,6 +61,7 @@ type KeysViewType = KeysListView | KeysTreeView
 type alias LoadedKeys = {
     keys: List RedisKey,
     pagesCount: Int,
+    foundKeysCount: Int,
     currentPage: Int
 }
 
@@ -187,6 +188,7 @@ initModel flags =
     loadedKeys = {
       keys = [],
       pagesCount = 0,
+      foundKeysCount = 0,
       currentPage = 1
     },
     windowSize = {width = 0, height = 0},

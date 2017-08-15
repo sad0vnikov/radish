@@ -34,7 +34,11 @@ sanitizeKeysMask mask =
 
 keysListDecoder : Decode.Decoder LoadedKeys
 keysListDecoder =
-    Decode.map3 LoadedKeys (Decode.field "Keys" (Decode.list Decode.string)) (Decode.field "PagesCount" Decode.int) (Decode.field "Page" Decode.int)
+    Decode.map4 LoadedKeys 
+        (Decode.field "Keys" (Decode.list Decode.string)) 
+        (Decode.field "PagesCount" Decode.int) 
+        (Decode.field "FoundKeysCount" Decode.int)
+        (Decode.field "Page" Decode.int)
 
 
 getKeysSubtree : Model -> List String -> Cmd Msg
