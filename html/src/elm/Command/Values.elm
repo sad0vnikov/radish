@@ -155,10 +155,11 @@ decodeRedisSingleValue =
 
 decodeRedisValuesPage : Decode.Decoder LoadedValues
 decodeRedisValuesPage =
-    Decode.map MultipleRedisValues <| Decode.map4 RedisValuesPage
+    Decode.map MultipleRedisValues <| Decode.map5 RedisValuesPage
         (Decode.field "Values" decodeValuesList)     
         (Decode.field "PagesCount" Decode.int)
-        (Decode.field "PageNum" Decode.int)        
+        (Decode.field "PageNum" Decode.int)
+        (Decode.field "FoundValuesCount" Decode.int)
         (Decode.field "KeyType" Decode.string |> Decode.andThen decodeKeyType)
 
 decodeKeyType : String -> Decode.Decoder KeyType

@@ -97,6 +97,7 @@ type alias RedisValuesPage =  {
     values: RedisValues,
     pagesCount: Int,
     currentPage: Int,
+    totalValuesCount: Int,
     keyType: KeyType
 }
 

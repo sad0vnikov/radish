@@ -64,6 +64,9 @@ keyEditor model chosenKey =
         div [class "clearfix"] []
       ]   
     ],
+    div [] [
+      drawTotalValuesCount model.loadedValues
+    ],
     drawKeyValuesEditorByType chosenKey model
   ]
 
@@ -76,6 +79,18 @@ drawKeyType loadedValues =
     ZSetRedisKey -> text "zset"
     HashRedisKey -> text "hash"
     UnknownRedisKey -> text "unknown key type"
+
+drawTotalValuesCount : LoadedValues -> Html Msg
+drawTotalValuesCount loadedValues =
+  case loadedValues of
+    MultipleRedisValues valuesPage ->
+      div [class "pull-right"] [
+        text "Found ",
+        text <| toString valuesPage.totalValuesCount,
+        text " values"
+      ]
+    _ ->
+      div [] []
 
 drawKeyValuesEditorByType : String -> Model -> Html Msg
 drawKeyValuesEditorByType key model = 
