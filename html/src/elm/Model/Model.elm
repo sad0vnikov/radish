@@ -1,6 +1,6 @@
 module Model.Model exposing (Model, Server, RedisKey, LoadedServers, LoadedKeys, LoadedValues, KeyType, KeysTreeNode(..), LoadedKeysSubtree, UnfoldKeysTreeNodeInfo, CollapsedKeysTreeNodeInfo, KeysTreeLeafInfo,
   LoadedValues(..), RedisValuesPage, RedisValue, emptyKeysSubtree, availableKeyTypes, keyTypeName, keyTypeAlias, keyTypeFromAlias, KeysViewType(..), KeyType(..), RedisValues(..), StringRedisValue, 
-  ListRedisValue, ZSetRedisValue, SetRedisValue, HashRedisValue, UserConfirmation(..), getChosenServer, getLoadedKeyType, getChosenServerAndKey, initModel)
+  ListRedisValue, ZSetRedisValue, SetRedisValue, HashRedisValue, UserConfirmation(..), ServerKeyspaceStat, ServerStat, getChosenServer, getLoadedKeyType, getChosenServerAndKey, initModel)
 
 import Dict exposing (..)
 import Flags exposing (Flags)
@@ -230,6 +230,20 @@ type alias Server = {
   port_: Int,
   databasesCount: Int,
   connectionCheckPassed: Bool
+}
+
+type alias ServerKeyspaceStat = {
+  keysCount: Int
+}
+
+type alias ServerStat = {
+  connectedClientsCount: Int,
+  redisVersion: String,
+  uptimeInSeconds: Int,
+  usedMemoryHuman: String,
+  usedMemoryBytes: Int,
+  maxMemoryHuman: String,
+  maxMemotyBytes: Int
 }
 
 type alias RedisKey = String
