@@ -287,7 +287,7 @@ httpErrorToString err =
     Http.Timeout -> "Request timeout"
     Http.NetworkError -> "Network error"
     Http.BadStatus _ ->  "Got error response"
-    Http.BadPayload _ _ ->  "Cannot decode response"
+    Http.BadPayload msg _ ->  "Cannot decode response (" ++ msg ++ ")"
 
 
 valueUpdatingErrorToString : Http.Error -> String

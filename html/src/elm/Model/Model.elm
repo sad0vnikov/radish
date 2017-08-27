@@ -229,7 +229,9 @@ type alias Server = {
   host: String,
   port_: Int,
   databasesCount: Int,
-  connectionCheckPassed: Bool
+  connectionCheckPassed: Bool,
+  serverStat: Maybe ServerStat,
+  serverKeyspaceStat: Maybe (Dict String ServerKeyspaceStat)
 }
 
 type alias ServerKeyspaceStat = {

@@ -20,6 +20,7 @@ view model =
   div [ class "container" ] [
       navbar model,
       maybeDrawWorkspace model,
+      maybeDrawServersList model,
       Dialog.view (
         if model.addKeyModalShown then
           AddKeyModal.view model
@@ -99,6 +100,14 @@ maybeDrawWorkspace model =
     Nothing ->
       div [] []
 
+maybeDrawServersList : Model -> Html Msg
+maybeDrawServersList model =
+  case model.chosenServer of
+    Just server ->
+      div [] []
+    Nothing ->
+      serversList model
+
 workspace : Model -> Html Msg
 workspace model = 
   div [class "row" ] [
@@ -109,6 +118,64 @@ workspace model =
           valuesPanel model 
       ]
     ]
+
+serversList : Model -> Html Msg
+serversList model =
+  div [class "row"]
+    <| List.map (\server ->
+      div [class "col-md-6"] [
+        div [class "panel panel-default"] [
+          div [class "panel-heading"] [
+            text server.name
+          ],
+          div [class "panel-body"] [
+            serverStat server
+          ]
+        ]   
+      ]
+    ) <| Dict.values model.loadedServers.servers
+
+serverStat : Server -> Html Msg
+serverStat server =
+  case server.serverStat of
+    Just serverStat ->
+      table [class "table"] [
+        tbody [] [
+            tr [] [
+              td [] [text "Redis version"],
+              td [] [text serverStat.redisVersion]
+            ],
+            tr [] [
+              td [] [text "Connected clients count"],
+              td [] [text <| toString serverStat.connectedClientsCount]
+            ],
+            tr [] [
+              td [] [text "Keyspace info"],
+              td [] [
+                  table [class "table"] [
+                    tbody [] <| keyspaceStatRows server
+                  ]
+              ]
+            ],
+            tr [] [
+              td [] [text "Used memory"],
+              td [] [text serverStat.usedMemoryHuman]
+            ]
+        ]
+      ]
+    Nothing -> div [] []
+
+keyspaceStatRows : Server -> List (Html Msg)
+keyspaceStatRows server =
+  case server.serverKeyspaceStat of
+    Just keyspaceStat ->
+        List.map (\(serverName, st) ->
+          tr [] [
+            td [] [text serverName],
+            td [] [text <| "Keys count: " ++ toString st.keysCount]
+          ]  
+        ) <| Dict.toList keyspaceStat
+    Nothing -> []
 
 drawKeysPanel : Model -> Html Msg
 drawKeysPanel model =
