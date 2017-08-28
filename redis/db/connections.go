@@ -58,7 +58,7 @@ func (connections RedisConnections) GetMaxDbNumsForServer(serverName string) (ui
 		return 0, err
 	}
 
-	r, err := conn.Do("CONFIG", "GET", "DATABASES")
+	r, err := conn.Do("CONFIG", "GET", "databases")
 	cfgValues, err := redis.Strings(r, err)
 	if err != nil {
 		return 0, err
