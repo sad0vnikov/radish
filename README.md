@@ -1,6 +1,9 @@
 # Radish
 *v0.2.1*
 
+[![Build Status](https://travis-ci.org/sad0vnikov/radish.svg?branch=master)](https://travis-ci.org/sad0vnikov/radish)
+
+
 Radish is a simple and powerful Redis GUI administration panel
 
 ## Features:
