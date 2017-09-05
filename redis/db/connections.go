@@ -5,6 +5,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/sad0vnikov/radish/config"
 	"github.com/sad0vnikov/radish/logger"
+	"github.com/sad0vnikov/radish/helpers"
 	rd "github.com/sad0vnikov/radish/redis"
 	"regexp"
 	"strconv"
@@ -85,7 +86,16 @@ func (connections RedisConnections) GetServerStat(serverName string) (rd.ServerS
 		return rd.ServerStat{}, err
 	}
 
-	return parseInfoStrings(strings.Split(info, "\r\n")), nil
+	c := parseInfoStrings(strings.Split(info, "\r\n"))
+
+	maxMemory, err := connections.getServerConfigParam(serverName, "maxmemory")
+	if err != nil {
+		return rd.ServerStat{}, err
+	}
+	maxMemoryBytes, err := strconv.Atoi(maxMemory)
+	c.MaxMemoryBytes =  int64(maxMemoryBytes)
+	c.MaxMemoryHuman = helpers.SizeInBytesToHumanReadable(c.MaxMemoryBytes)
+	return c, err
 }
 
 func (connections RedisConnections) GetServerKeyspaceStat(serverName string) (map[string]rd.ServerKeyspaceStat, error) {
@@ -111,6 +121,17 @@ func (connections RedisConnections) GetServerKeyspaceStat(serverName string) (ma
 		stat[dbName] = dbKeyspaceStat
 	}
 	return stat, nil
+}
+
+func (connections RedisConnections) getServerConfigParam(serverName, paramName string)  (string, error) {
+	conn, err := connections.GetByName(serverName, 0)
+	if err != nil {
+		return "", err
+	}
+
+	r, err := conn.Do("CONFIG", "GET", paramName)
+	rs, err := redis.Strings(r, err)
+	return rs[1], err
 }
 
 func parseKeyspaceStatString(statString string) rd.ServerKeyspaceStat {
@@ -148,10 +169,6 @@ func parseInfoStrings(info []string) rd.ServerStat {
 			c.UsedMemoryHuman = statValue
 		case "used_memory":
 			c.UsedMemoryBytes = intValue
-		case "max_memory_human":
-			c.MaxMemoryHuman = statValue
-		case "max_memory":
-			c.MaxMemoryBytes = intValue
 		case "redis_version":
 			c.RedisVersion = statValue
 		case "uptime_in_seconds":
