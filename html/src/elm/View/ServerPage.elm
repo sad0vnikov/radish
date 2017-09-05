@@ -13,6 +13,7 @@ import View.Values exposing (..)
 import View.AddKeyModal as AddKeyModal
 import View.AboutModal as AboutModal
 import View.Helpers exposing (..)
+import View.Progressbar exposing (drawProgressbar)
 import Dialog
 
 view : Model -> Html Msg
@@ -160,6 +161,18 @@ serverStat server =
             tr [] [
               td [] [text "Used memory"],
               td [] [text serverStat.usedMemoryHuman]
+            ],
+            tr [] [
+              td [] [text "Max memory"],
+              td [] [text serverStat.maxMemoryHuman]
+            ],
+            tr [] [
+              td [] [
+                text "Memory usage: "
+              ],
+              td [] [
+                drawProgressbar serverStat.usedMemoryBytes serverStat.maxMemoryBytes serverStat.usedMemoryHuman serverStat.maxMemoryHuman
+              ]
             ]
         ]
       ]

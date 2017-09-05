@@ -245,7 +245,7 @@ type alias ServerStat = {
   usedMemoryHuman: String,
   usedMemoryBytes: Int,
   maxMemoryHuman: String,
-  maxMemotyBytes: Int
+  maxMemoryBytes: Int
 }
 
 type alias RedisKey = String

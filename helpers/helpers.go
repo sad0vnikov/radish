@@ -3,9 +3,9 @@ package helpers
 import "strconv"
 
 func SizeInBytesToHumanReadable(size int64) string {
-	values := []string{"MB", "GB", "TB"}
+	values := []string{"K", "MB", "GB", "TB"}
 
-	humanSize := strconv.Itoa(int(size)) + "K"
+	humanSize := strconv.Itoa(int(size)) + "B"
 	i := 0
 	for size/1024 > 0 && i < len(values) {
 		size = size / 1024

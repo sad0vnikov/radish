@@ -93,7 +93,7 @@ func (connections RedisConnections) GetServerStat(serverName string) (rd.ServerS
 		return rd.ServerStat{}, err
 	}
 	maxMemoryBytes, err := strconv.Atoi(maxMemory)
-	c.MaxMemoryBytes =  int64(maxMemoryBytes)
+	c.MaxMemoryBytes =  int64(maxMemoryBytes) * 1024
 	c.MaxMemoryHuman = helpers.SizeInBytesToHumanReadable(c.MaxMemoryBytes)
 	return c, err
 }
