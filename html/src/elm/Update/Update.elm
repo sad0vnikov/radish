@@ -20,6 +20,8 @@ update msg model =
         updatedModel = {model | chosenServer = Just server}
       in
         (updatedModel, updateLoadedKeys updatedModel)
+    ServerChoiceCancel ->
+      ({model | chosenServer = Nothing}, Cmd.none)
     DatabaseChosen dbNum ->
       let
         updatedModel = {model | chosenDatabaseNum = dbNum, chosenKey = Nothing}

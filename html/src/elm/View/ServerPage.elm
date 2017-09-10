@@ -42,6 +42,13 @@ navbar model =
                 img [src "static/img/logo.png", alt "Radish"] []
               ]
             ],
+            ul [ class "navbar nav navbar-nav" ] [
+              li [ class "dropdown" ] [
+                a [onClick ServerChoiceCancel, href "#"] [
+                  text "Servers info"
+                ]
+              ]
+            ],
             ul [ class "navbar-right nav navbar-nav" ] [
               li [ class "dropdown" ] [
                 a [ class "dropdown-toggle", attribute "data-toggle" "dropdown" ] [

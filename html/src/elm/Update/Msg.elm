@@ -7,6 +7,7 @@ import Model.Model exposing (LoadedKeys, Server, RedisKey, RedisValue, StringRed
 
 type Msg = NoOp 
   | ChosenServer String 
+  | ServerChoiceCancel
   | DatabaseChosen Int
   | KeysListUpdateInitialized
   | ServersListLoaded (Result Http.Error (Dict String Server))
