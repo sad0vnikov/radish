@@ -115,10 +115,13 @@ func (connections RedisConnections) GetServerKeyspaceStat(serverName string) (ma
 		dbName := "db" + strconv.Itoa(dbNum)
 		statString := info[i]
 
-		dbKeyspaceStat := parseKeyspaceStatString(statString)
-		dbNum++
+		if len(statString) > 0 {
+			dbKeyspaceStat := parseKeyspaceStatString(statString)
+			dbNum++
 
-		stat[dbName] = dbKeyspaceStat
+			stat[dbName] = dbKeyspaceStat
+		}
+
 	}
 	return stat, nil
 }
