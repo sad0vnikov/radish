@@ -29,3 +29,18 @@ $ docker run docker run -p 8080:8080 -d -v /full/path/to/config.json:/config.jso
 ```
 
 Your Radish instance we'll be accessible on localhost:8080
+
+## Changelog
+
+### v0.3.0
+* Database info page (keys count, memory used, maxmemory value)
+* A filter for values list
+* Database selector
+* Displaying count of found keys and values
+
+### v0.2.0
+* Tree view for Redis keys
+* Values list pagination
+
+### v0.1.0
+initial release
