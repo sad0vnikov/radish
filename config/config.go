@@ -6,6 +6,7 @@ import (
 
 //Config is struct which stores configuration data
 type Config struct {
+	HttpPort int16
 	Servers   map[string]redis.Server
 	URLPrefix string
 }

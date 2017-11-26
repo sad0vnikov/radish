@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	server := server.HTTPServer{Port: 8080}
+	server := server.HTTPServer{Port: int(config.Get().HttpPort)}
 	server.AddHandler("GET", api.Version()+"/servers", api.GetServersList)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/databasesCount", api.GetMaxDbNumber)
 	server.AddHandler("GET", api.Version()+"/servers/{server}/keys", api.GetKeysByMask)

@@ -1,4 +1,5 @@
 {
+    "HttpPort": 8080,
     "Servers": [
         {
             "Name": "server1",
